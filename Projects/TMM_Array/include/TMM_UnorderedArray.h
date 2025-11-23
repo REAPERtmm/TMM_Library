@@ -1,0 +1,19 @@
+#pragma once
+#include "TMM_Array.h"
+
+namespace TMM {
+
+	template<typename T>
+	class ArrayUnordered : public Array<T> {
+	public:
+		ArrayUnordered();
+		ArrayUnordered(uint64_t allacationByteSize);
+		virtual ~ArrayUnordered() override;
+
+		virtual void Remove(const T& value) override;
+		virtual void RemoveAt(uint64_t index) override;
+	};
+	
+}
+
+#include <TMM_UnorderedArray.hpp>
