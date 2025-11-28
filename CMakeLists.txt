@@ -9,6 +9,11 @@ if(NOT TARGET TMM_Setup_LIB)
     add_subdirectory("Projects/TMM_Setup/")
 endif()
 
+message(STATUS "Including TMM_Structs at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Structs/")
+if(NOT TARGET TMM_Structs_LIB)
+    add_subdirectory("Projects/TMM_Structs/")
+endif()
+
 message(STATUS "Including TMM_Debugger at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Debugger/")
 if(NOT TARGET TMM_Debugger_LIB)
     add_subdirectory("Projects/TMM_Debugger/")
@@ -38,6 +43,7 @@ target_link_libraries(
     TestProject
     PUBLIC
         TMM_Setup_LIB
+        TMM_Structs_LIB
         TMM_Debugger_LIB
         TMM_Array_LIB
         TMM_Functional_LIB
@@ -49,4 +55,4 @@ target_sources(
     TestProject
     PRIVATE
         main.cpp
-)
+ "Projects/TMM_Structs/include/TMM_BitMask.h" "Projects/TMM_Structs/src/TMM_BitMask.cpp")

@@ -10,10 +10,10 @@ namespace TMM {
 	public:
 		Method(Obj* pObj, Ret(Obj::* pMethod)(Args...));
 
-		Ret Call(Args... args) const;
+		Ret Call(Args... args) const override;
 		void SwapObj(Obj* pObj);
 
-		Ret operator()(Args... args) const;
+		Ret operator()(Args... args) const override;
 		void operator = (Obj* pObj);
 	};
 
