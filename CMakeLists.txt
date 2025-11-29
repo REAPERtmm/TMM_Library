@@ -39,6 +39,11 @@ if(NOT TARGET TMM_Threading_LIB)
     add_subdirectory("Projects/TMM_Threading/")
 endif()
 
+message(STATUS "Including TMM_Files at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Files/")
+if(NOT TARGET TMM_Files_LIB)
+    add_subdirectory("Projects/TMM_Files/")
+endif()
+
 target_link_libraries(
     TestProject
     PUBLIC
@@ -49,10 +54,11 @@ target_link_libraries(
         TMM_Functional_LIB
         TMM_Query_LIB
         TMM_Threading_LIB
+        TMM_Files_LIB
 )
 
 target_sources(
     TestProject
     PRIVATE
         main.cpp
- "Projects/TMM_Structs/include/TMM_BitMask.h" "Projects/TMM_Structs/src/TMM_BitMask.cpp")
+)

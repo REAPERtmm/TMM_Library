@@ -1,12 +1,6 @@
 #include <TMM_Setup.h>
 #include <TMM_Debugger.h>
-#include <TMM_BitMask.h>
-
-TMM_START_BITMASK(BitMaskTest)
-TMM_ADD_MASK(1, MASK1)
-TMM_ADD_MASK(2, MASK2)
-TMM_ADD_MASK(3, MASK3)
-TMM_END_BITMASK()
+#include <TMM_OFile.h>
 
 int main(int argc, char* argv[]) 
 {
@@ -19,15 +13,13 @@ int main(int argc, char* argv[])
 	DBG_INIT(DBG_ERROR, OUTPUT_DEBUGGER);
 #endif // !NDEBUG
 
-	TMM::BitMask<BitMaskTest> mask(MASK1);
-	mask |= MASK2;
+	TMM::OFile oFile("log.txt");
+	oFile.ClearAndOpen();
+	oFile.Open();
 
-	if (mask.Contain(MASK3)) {
-		LOG_INFO << "ERROR" << ENDL;
-	}
-	else if (mask.Contain(MASK1 | MASK2)) {
-		LOG_INFO << "GOOD" << ENDL;
-	}
+	oFile.Write("Les oiseaux chantent", 20);
+
+	oFile.Close();
 
 	DBG_UNINIT();
 

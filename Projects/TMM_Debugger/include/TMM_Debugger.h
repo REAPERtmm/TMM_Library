@@ -3,11 +3,8 @@
 
 #include <cstdio>
 #include <Windows.h>
-
-// TODO :  Replace 
 #include <iostream>
 #include <string>
-// END TODO
 
 #define DBG_INIT	TMM::Debugger::Init
 #define LOG_INFO	*TMM::Debugger::Get(DBG_INFO)	<< "[INFO   ] "
@@ -18,7 +15,7 @@
 #define DBG_UNINIT	TMM::Debugger::UnInit
 
 // Uncomment this to make the debugger ThreadSafe 
-#define ENABLE_DBG_THREAD_SAFE
+// #define ENABLE_DBG_THREAD_SAFE
 
 enum DEBUGGER_FLAGS
 {

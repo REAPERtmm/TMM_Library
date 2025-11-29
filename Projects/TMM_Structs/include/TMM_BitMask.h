@@ -123,7 +123,7 @@ namespace TMM
 			return operator >= (other);
 		}
 
-		bool Contain(const BitMask& other) const {
+		bool Contain(const Enum& other) const {
 			return operator >= (other);
 		}
 	};
