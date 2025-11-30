@@ -2,128 +2,31 @@
 #include "TMM_Thread.h"
 #include "TMM_Thread.h"
 #include "TMM_Thread.h"
+#include "TMM_Thread.h"
 
 namespace TMM 
 {
-	ThreadHandle::ThreadHandle(const char* name, Thread* pHold, bool startPaused)
-		: mName(name), mpSelf(pHold)
-	{
-		mShouldTerminate = false;
-		mIsPaused = startPaused;
-		mHasExited = false;
-		InitializeCriticalSection(&mCS);
-	}
 
-	ThreadHandle::~ThreadHandle()
+	ThreadContext<char>* Thread::GetContextPtr()
 	{
-		DeleteCriticalSection(&mCS);
+		return reinterpret_cast<ThreadContext<char>*>(mpThreadContext);
 	}
-
-	const Thread* ThreadHandle::GetCurrentThread() const
-	{
-		return mpSelf;
-	}
-
-	const char* ThreadHandle::GetName() const
-	{
-		return mName;
-	}
-
-	bool ThreadHandle::TerminationStatus()
-	{
-		bool Result;
-		EnterCriticalSection(&mCS);
-		Result = mShouldTerminate;
-		LeaveCriticalSection(&mCS);
-		return Result;
-	}
-
-	bool ThreadHandle::IsPaused()
-	{
-		bool Result;
-		EnterCriticalSection(&mCS);
-		Result = mIsPaused;
-		LeaveCriticalSection(&mCS);
-		return Result;
-	}
-
-	ThreadStatusCode ThreadHandle::GetStatus()
-	{
-		ThreadStatusCode Result;
-		EnterCriticalSection(&mCS);
-		Result = mStatusCode;
-		LeaveCriticalSection(&mCS);
-		return Result;
-	}
-
-	void ThreadHandle::SafeTerminate()
-	{
-		EnterCriticalSection(&mCS);
-		mShouldTerminate = true;
-		LeaveCriticalSection(&mCS);
-	}
-
-	void ThreadHandle::SafePause()
-	{
-		EnterCriticalSection(&mCS);
-		if (mIsPaused == false) {
-			mIsPaused = true;
-			LeaveCriticalSection(&mCS);
-			SuspendThread(mpSelf->GetHandle());
-			return;
-		}
-		LeaveCriticalSection(&mCS);
-	}
-
-	void ThreadHandle::SafeResume()
-	{
-		EnterCriticalSection(&mCS);
-		if (mIsPaused) {
-			ResumeThread(mpSelf->GetHandle());
-			mIsPaused = false;
-		}
-		LeaveCriticalSection(&mCS);
-	}
-
-	DWORD ThreadHandle::ExitWithStatus(ThreadStatusCode status)
-	{
-		EnterCriticalSection(&mCS);
-		mHasExited = true;
-		mStatusCode = status;
-		LeaveCriticalSection(&mCS);
-		return status;
-	}
-
-	//void ThreadHandle::ChangeStatus(ThreadStatusCode status)
-	//{
-	//	EnterCriticalSection(&mCS);
-	//	mStatusCode = status;
-	//	LeaveCriticalSection(&mCS);
-	//}
 
 	Thread::Thread(const char* name, bool startPaused)
-		: mhThread(name, this, startPaused)
-	{
-		mHandle = nullptr;
+		: mHandle(nullptr), mID(0), mpThreadContext(new ThreadContext<char>(name, this, startPaused)) 
+	{ 
+
 	}
 
 	Thread::~Thread()
 	{
-		Terminate();
-	}
-
-	void Thread::Start(TMM::Function<DWORD, ThreadHandle*>* pFunc)
-	{
-		if (mHandle == nullptr) {
-			mHandle = CreateThread(
-				NULL,
-				0,
-				(LPTHREAD_START_ROUTINE)(pFunc->Ptr()),
-				&mhThread,
-				(mhThread.IsPaused() ? CREATE_SUSPENDED : 0),
-				(DWORD*)&mID
-			);
+		if (GetContextPtr()->IsExited()) {
+			delete GetContextPtr();
 		}
+		//else {
+		//	TerminateWait();
+		//	delete GetContextPtr();
+		//}
 	}
 
 	HANDLE Thread::GetHandle() const
@@ -138,7 +41,7 @@ namespace TMM
 
 	ThreadStatusCode Thread::GetStatus()
 	{
-		return mhThread.GetStatus();
+		return GetContextPtr()->GetStatus();
 	}
 
 	ThreadStatusCode Thread::TerminateWait(uint32_t maxDuration)
@@ -152,16 +55,26 @@ namespace TMM
 
 	void Thread::Terminate()
 	{
-		mhThread.SafeTerminate();
+		GetContextPtr()->SafeTerminate();
 	}
 
 	void Thread::Pause()
 	{
-		mhThread.SafePause();
+		GetContextPtr()->SafePause();
 	}
 	
+	bool Thread::IsPaused() 
+	{
+		return GetContextPtr()->IsPaused();
+	}
+
 	void Thread::Resume()
 	{
-		mhThread.SafeResume();
+		GetContextPtr()->SafeResume();
+	}
+
+	uint16_t Thread::GetMaxThreadCount()
+	{
+		return static_cast<uint16_t>(GetMaximumProcessorCount(ALL_PROCESSOR_GROUPS));
 	}
 }

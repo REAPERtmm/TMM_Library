@@ -1,6 +1,20 @@
 #include <TMM_Setup.h>
 #include <TMM_Debugger.h>
 #include <TMM_OFile.h>
+#include <TMM_Thread.h>
+
+#define TEST_FILE_T TMM::OFile
+
+DWORD WriteInFileAsync(TMM::ThreadContext<TEST_FILE_T>* ctx) {
+	TMM::OFile* pFile = ctx->UnsafeData();
+	
+	for (size_t i = 0; i < 100; i++)
+	{
+		pFile->Write("Les oiseaux s'envolent", 20);
+	}
+
+	return ctx->ExitWithStatus(TMM::SUCESS);
+}
 
 int main(int argc, char* argv[]) 
 {
@@ -13,11 +27,19 @@ int main(int argc, char* argv[])
 	DBG_INIT(DBG_ERROR, OUTPUT_DEBUGGER);
 #endif // !NDEBUG
 
-	TMM::OFile oFile("log.txt");
+	TMM::Thread thread1("Write 1");
+	TMM::Thread thread2("Write 2");
+
+	TEST_FILE_T oFile("log.txt");
 	oFile.ClearAndOpen();
 	oFile.Open();
 
-	oFile.Write("Les oiseaux chantent", 20);
+	auto threadProc = TMM::MakeFunction(WriteInFileAsync);
+
+	thread1.Start(&threadProc, &oFile);
+	thread2.Start(&threadProc, &oFile);
+	thread1.TerminateWait();
+	thread2.TerminateWait();
 
 	oFile.Close();
 
