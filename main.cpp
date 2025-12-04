@@ -2,19 +2,27 @@
 #include <TMM_Debugger.h>
 #include <TMM_OFile.h>
 #include <TMM_Thread.h>
+#include <TMM_ThreadList.h>
+
+#pragma comment(lib, "Winmm.lib")
 
 #define TEST_FILE_T TMM::OFile
 
-DWORD WriteInFileAsync(TMM::ThreadContext<TEST_FILE_T>* ctx) {
-	TMM::OFile* pFile = ctx->UnsafeData();
-	
-	for (size_t i = 0; i < 100; i++)
-	{
-		pFile->Write("Les oiseaux s'envolent", 20);
-	}
+struct MyStruct {
+	int* pData;
+	int dataSize;
+	int start;
+	int end;
+};
 
-	return ctx->ExitWithStatus(TMM::SUCESS);
+bool CreateSuite(TMM::ThreadArg<MyStruct>* pArg) {
+	for (int i = pArg->pData->start; i < pArg->pData->end; ++i) {
+		pArg->pData->pData[i] = i;
+		Sleep(1); // Fake work
+	}
+	return true;
 }
+
 
 int main(int argc, char* argv[]) 
 {
@@ -27,21 +35,37 @@ int main(int argc, char* argv[])
 	DBG_INIT(DBG_ERROR, OUTPUT_DEBUGGER);
 #endif // !NDEBUG
 
-	TMM::Thread thread1("Write 1");
-	TMM::Thread thread2("Write 2");
+	int time = timeGetTime();
 
-	TEST_FILE_T oFile("log.txt");
-	oFile.ClearAndOpen();
-	oFile.Open();
+	int threadCount = 64;
+	int countMax = 1280;
+	int subDivide = countMax / threadCount;
+	int* suite = new int[countMax];
 
-	auto threadProc = TMM::MakeFunction(WriteInFileAsync);
+	TMM::ThreadArg<MyStruct>* args = new TMM::ThreadArg<MyStruct>[threadCount];
 
-	thread1.Start(&threadProc, &oFile);
-	thread2.Start(&threadProc, &oFile);
-	thread1.TerminateWait();
-	thread2.TerminateWait();
+	for (int i = 0; i < threadCount; ++i) {
+		args[i].layer = 0;
+		args[i].pData = new MyStruct{ suite, countMax, i * subDivide, (i + 1) * subDivide };
+	}
+	auto func = TMM::MakeFunction(CreateSuite);
 
-	oFile.Close();
+	TMM::ThreadList<MyStruct> mThreadList(threadCount, args, &func);
+
+	delete[] args;
+
+	mThreadList.Update();
+	mThreadList.TerminateWait();
+
+	int time2 = timeGetTime();
+
+	for (int i = 0; i < countMax; ++i) {
+		LOG_INFO << "at " << i << " : " << suite[i] << ENDL;
+	}
+
+	LOG_INFO << "The Simulation runned in : " << time2 - time << " ms" << ENDL;
+
+	delete[] suite;
 
 	DBG_UNINIT();
 

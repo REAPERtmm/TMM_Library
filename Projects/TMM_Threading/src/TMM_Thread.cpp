@@ -20,8 +20,10 @@ namespace TMM
 
 	Thread::~Thread()
 	{
+		if (mpThreadContext == nullptr) return;
 		if (GetContextPtr()->IsExited()) {
 			delete GetContextPtr();
+			mpThreadContext = nullptr;
 		}
 		//else {
 		//	TerminateWait();

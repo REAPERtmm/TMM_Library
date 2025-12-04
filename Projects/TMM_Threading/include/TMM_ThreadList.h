@@ -1,6 +1,7 @@
 #pragma once
 #include <TMM_Setup.h>
 #include <TMM_Function.h>
+#include <TMM_Thread.h>
 
 namespace TMM
 {
@@ -21,7 +22,7 @@ namespace TMM
 
 		TMM::Function<bool, ThreadArg<Data>*>*	mpProc;
 
-		ThreadArg<Data>*						mpThreads;
+		ThreadArg<Data>*						mThreads;
 		ThreadProcDescriptor*					mThreadProcDescriptors;
 		uint16_t								mThreadCount;
 
@@ -29,14 +30,23 @@ namespace TMM
 		uint8_t									mLayerCount;
 
 		bool									mIsTerminated;
+
+		void ResumeCurrentLayer();
+		bool IsLayerFinished();
+		bool SwapLayer();
+
+		static DWORD ThreadProc(ThreadContext<ThreadProcDescriptor>* pHandle);
+
+		ThreadArg<Data>* InternalGetThreadInfo(uint32_t index);
 	public:
-		ThreadList(uint16_t threadCount, TMM::Function<bool, ThreadArg<Data>*>* pProc, ThreadArg<Data>* args);
-		~ThreadList()
+		ThreadList(uint16_t threadCount, ThreadArg<Data>* args, TMM::Function<bool, ThreadArg<Data>*>* pProc);
+		virtual ~ThreadList();
+
+		void Update();
+		const ThreadArg<Data>* GetThreadInfo(uint32_t index) const;
+
+		void TerminateWait();
 	};
-
-
-
-
 }
 
 #include "TMM_ThreadList.hpp"
