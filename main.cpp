@@ -1,28 +1,9 @@
-#include <TMM_Setup.h>
 #include <TMM_Debugger.h>
-#include <TMM_OFile.h>
-#include <TMM_Thread.h>
-#include <TMM_ThreadList.h>
+#include <TMM_Vectors.h>
+#include <TMM_SSEMath.h>
+#include <intrin.h>
 
 #pragma comment(lib, "Winmm.lib")
-
-#define TEST_FILE_T TMM::OFile
-
-struct MyStruct {
-	int* pData;
-	int dataSize;
-	int start;
-	int end;
-};
-
-bool CreateSuite(TMM::ThreadArg<MyStruct>* pArg) {
-	for (int i = pArg->pData->start; i < pArg->pData->end; ++i) {
-		pArg->pData->pData[i] = i;
-		Sleep(1); // Fake work
-	}
-	return true;
-}
-
 
 int main(int argc, char* argv[]) 
 {
@@ -30,42 +11,54 @@ int main(int argc, char* argv[])
 	auto tmp = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
 	tmp |= _CRTDBG_LEAK_CHECK_DF;
 	_CrtSetDbgFlag(tmp);
-	DBG_INIT(DBG_ALL, OUTPUT_CONSOLE);
+
+	TMM::BitMask<TMM::DEBUGGER_FLAGS> flags = TMM::DEBUGGER_FLAGS::ALL;
+	TMM::BitMask<TMM::DEBUGGER_OUTPUT> outputs;
+	outputs |= TMM::DEBUGGER_OUTPUT::OUTPUT_CONSOLE;
+	outputs |= TMM::DEBUGGER_OUTPUT::OUTPUT_LOGS;
+	DBG_INIT(flags, outputs, true);
 #else
-	DBG_INIT(DBG_ERROR, OUTPUT_DEBUGGER);
+	TMM::BitMask<TMM::DEBUGGER_FLAGS> flags = TMM::DEBUGGER_FLAGS::ALL;
+	TMM::BitMask<TMM::DEBUGGER_OUTPUT> outputs = TMM::DEBUGGER_OUTPUT::OUTPUT_CONSOLE;
+	outputs |= TMM::DEBUGGER_OUTPUT::OUTPUT_LOGS;
+	DBG_INIT(flags, outputs, true);
 #endif // !NDEBUG
 
-	int time = timeGetTime();
+	TMM::Vec4f matOut[4];
 
-	int threadCount = 64;
-	int countMax = 1280;
-	int subDivide = countMax / threadCount;
-	int* suite = new int[countMax];
+	uint64_t t1 = __rdtsc();
 
-	TMM::ThreadArg<MyStruct>* args = new TMM::ThreadArg<MyStruct>[threadCount];
+	TMM::MATRIX_OPP mat0(2.0f);
+	TMM::MATRIX_OPP mat1(
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		1, 2, 3, 4,
+		5, 6, 7, 8
+	);
 
-	for (int i = 0; i < threadCount; ++i) {
-		args[i].layer = 0;
-		args[i].pData = new MyStruct{ suite, countMax, i * subDivide, (i + 1) * subDivide };
-	}
-	auto func = TMM::MakeFunction(CreateSuite);
+	// 800-900 ticks
+	//for (int i = 0; i < 5; ++i) {
+	//	TMM_OPP_MUL_MAT_Accumulate(mat1, mat0);
+	//}
 
-	TMM::ThreadList<MyStruct> mThreadList(threadCount, args, &func);
+	//mat1.Out(matOut);
 
-	delete[] args;
+	// 45 ticks
+	TMM_OPP_MUL_MAT(mat2, mat1, mat0);
+	TMM_OPP_MUL_MAT(mat3, mat2, mat0);
+	TMM_OPP_MUL_MAT(mat4, mat3, mat0);
+	TMM_OPP_MUL_MAT(mat5, mat4, mat0);
+	TMM_OPP_MUL_MAT(mat6, mat5, mat0);
 
-	mThreadList.Update();
-	mThreadList.TerminateWait();
+	mat6.Out(matOut);
 
-	int time2 = timeGetTime();
+	uint64_t t2 = __rdtsc();
 
-	for (int i = 0; i < countMax; ++i) {
-		LOG_INFO << "at " << i << " : " << suite[i] << ENDL;
-	}
-
-	LOG_INFO << "The Simulation runned in : " << time2 - time << " ms" << ENDL;
-
-	delete[] suite;
+	LOG_INFO << "Enlapsed time SIMD : " << t2 - t1 << " ticks output : " << ENDL;
+	LOG_INFO << matOut[0].x << ", " << matOut[0].y << ", " << matOut[0].z << ", " << matOut[0].w << ENDL;
+	LOG_INFO << matOut[1].x << ", " << matOut[1].y << ", " << matOut[1].z << ", " << matOut[1].w << ENDL;
+	LOG_INFO << matOut[2].x << ", " << matOut[2].y << ", " << matOut[2].z << ", " << matOut[2].w << ENDL;
+	LOG_INFO << matOut[3].x << ", " << matOut[3].y << ", " << matOut[3].z << ", " << matOut[3].w << ENDL;
 
 	DBG_UNINIT();
 

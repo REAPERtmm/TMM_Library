@@ -29,11 +29,25 @@ if(NOT TARGET TMM_Setup_LIB)
 		${CMAKE_CURRENT_BINARY_DIR}/TMM_Setup_build
 	)
 endif()
+if(NOT TARGET TMM_Structs_LIB)
+	add_subdirectory(
+		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Structs
+		${CMAKE_CURRENT_BINARY_DIR}/TMM_Structs_build
+	)
+endif()
+if(NOT TARGET TMM_Files_LIB)
+	add_subdirectory(
+		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Files
+		${CMAKE_CURRENT_BINARY_DIR}/TMM_Files_build
+	)
+endif()
 
 target_link_libraries(
 	TMM_Debugger_LIB
 	PUBLIC
 		TMM_Setup_LIB
+		TMM_Structs_LIB
+		TMM_Files_LIB
 )
 
 

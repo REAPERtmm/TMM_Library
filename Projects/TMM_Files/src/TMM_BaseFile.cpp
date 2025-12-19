@@ -1,5 +1,4 @@
 #include "TMM_BaseFile.h"
-
 namespace TMM 
 {
 	/* === BaseFile === */
@@ -18,7 +17,6 @@ namespace TMM
 	{
 		auto err = fopen_s(&mpFile, mPath, mMode);
 		if (err != 0) {
-			LOG_ERROR << "Failed to [OPEN] " << mPath << " with mode " << mMode << ":\n" << "Error code : " << err << ENDL;
 			return false;
 		}
 		mIsOpened = true;
@@ -29,7 +27,6 @@ namespace TMM
 	{
 		auto err = fclose(mpFile);
 		if (err != 0) {
-			LOG_ERROR << "Failed to [CLOSE] " << mPath << " with mode " << mMode << ":\n" << "Error code : " << err << ENDL;
 			return false;
 		}
 		mIsOpened = false;
@@ -40,7 +37,6 @@ namespace TMM
 	{
 		auto err = fread(pDest, size, 1, mpFile);
 		if (err != 1) {
-			LOG_ERROR << "Failed to [READ] " << mPath << " with mode " << mMode << ":\n" << "Error code : " << ferror(mpFile) << ENDL;
 			return false;
 		}
 		return true;
@@ -50,7 +46,6 @@ namespace TMM
 	{
 		auto err = fwrite(pSrc, size, 1, mpFile);
 		if (err != 1) {
-			LOG_ERROR << "Failed to [WRITE] " << mPath << " with mode " << mMode << ":\n" << "Error code : " << ferror(mpFile) << ENDL;
 			return false;
 		}
 		return true;
@@ -60,7 +55,6 @@ namespace TMM
 	{
 		auto err = _fseeki64(mpFile, position, mode);
 		if (err != 1) {
-			LOG_ERROR << "Failed to [WRITE] " << mPath << " with mode " << mMode << ":\n" << "Error code : " << ferror(mpFile) << ENDL;
 			return false;
 		}
 		return true;

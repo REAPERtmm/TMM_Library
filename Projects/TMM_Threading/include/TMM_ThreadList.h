@@ -7,9 +7,9 @@ namespace TMM
 {
 	template<typename Data>
 	struct ThreadArg {
-		Thread*		pThread;
-		Data*		pData;
-		uint8_t		layer;
+		Thread*		pThread		= nullptr;
+		Data*		pData		= nullptr;
+		uint8_t		layer		= 0;
 	};
 
 	template<typename Data>

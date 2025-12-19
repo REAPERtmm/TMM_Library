@@ -1,46 +1,40 @@
 #pragma once
-#include <TMM_Setup.h>
 
-#include <cstdio>
+#include <TMM_Setup.h>
+#include <TMM_BitMask.h>
+#include <TMM_OFile.h>
+
 #include <Windows.h>
 #include <iostream>
 #include <string>
 
 #define DBG_INIT	TMM::Debugger::Init
-#define LOG_INFO	*TMM::Debugger::Get(DBG_INFO)	<< "[INFO   ] "
-#define LOG_SYSTEM	*TMM::Debugger::Get(DBG_SYSTEM)	<< "[SYSTEM ] "
-#define LOG_WARNING *TMM::Debugger::Get(DBG_WARNING)	<< "[WARNING] "
-#define LOG_ERROR	TMM::Debugger::Get(DBG_ERROR)->RegisterError(__LINE__, __FUNCTION__, __FILE__)	<< "[ERROR  ] "
+#define LOG_INFO	*TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_INFO)	<< "[INFO   ] "
+#define LOG_SYSTEM	*TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_SYSTEM)	<< "[SYSTEM ] "
+#define LOG_WARNING *TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_WARNING)	<< "[WARNING] "
+#define LOG_ERROR	TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_ERROR)->RegisterError(__LINE__, __FUNCTION__, __FILE__)	<< "[ERROR  ] "
 #define ENDL		TMM::TMM_ENDL()
 #define DBG_UNINIT	TMM::Debugger::UnInit
 
-// Uncomment this to make the debugger ThreadSafe 
-// #define ENABLE_DBG_THREAD_SAFE
-
-enum DEBUGGER_FLAGS
-{
-	DBG_NONE = 0b00000000,
-
-	DBG_INFO = 0b00000001,
-	DBG_SYSTEM = 0b00000010,
-	DBG_WARNING = 0b00000100,
-	DBG_ERROR = 0b00001000,
-
-	DBG_ALL = 0b11111111,
-};
-
-enum DEBUGGER_OUTPUT
-{
-	OUTPUT_CONSOLE,
-	OUTPUT_DEBUGGER,
-	OUTPUT_LOGS,
-};
-
 namespace TMM {
+
+	TMM_START_BITMASK(DEBUGGER_FLAGS)
+	TMM_ADD_MASK(0, DBG_INFO)
+	TMM_ADD_MASK(1, DBG_SYSTEM)
+	TMM_ADD_MASK(2, DBG_WARNING)
+	TMM_ADD_MASK(3, DBG_ERROR)
+	TMM_END_BITMASK();
+
+	TMM_START_BITMASK(DEBUGGER_OUTPUT)
+	TMM_ADD_MASK(0, OUTPUT_CONSOLE)
+	TMM_ADD_MASK(1, OUTPUT_DEBUGGER)
+	TMM_ADD_MASK(2, OUTPUT_LOGS)
+	TMM_END_BITMASK();
+
 	struct DEBUGGER_DESCRIPTOR
 	{
-		uint32_t Flags;
-		uint32_t Output;
+		BitMask<DEBUGGER_FLAGS> Flags;
+		BitMask<DEBUGGER_OUTPUT> Output;
 	};
 
 	struct TMM_ENDL {
@@ -59,18 +53,17 @@ namespace TMM {
 		bool mIsInit = false;
 
 		bool mCurrentValid = false;
-		DEBUGGER_FLAGS mCurrentFlag = DBG_NONE;
+		BitMask<DEBUGGER_FLAGS> mCurrentFlag = DEBUGGER_FLAGS::NONE;
 
 		DEBUGGER_DESCRIPTOR mDescriptor;
 
-		FILE* pFile = nullptr;
+		TMM::OFile* mpOutputFile;
 
 		ERROR_DESCRIPTOR* mErrors;
 		uint8_t mErrorIndex = 0;
 
-#ifdef ENABLE_DBG_THREAD_SAFE
+		bool mThreadSafetyEnabled;
 		CRITICAL_SECTION mCS;
-#endif // ENABLE_DBG_THREAD_SAFE
 
 		Debugger();
 		~Debugger();
@@ -83,7 +76,7 @@ namespace TMM {
 		static Debugger* InternalGet(DEBUGGER_FLAGS flags);
 	public:
 		static Debugger* Get(DEBUGGER_FLAGS flags);
-		static bool Init(uint32_t flags, uint32_t output);
+		static bool Init(const BitMask<DEBUGGER_FLAGS>& flags, const BitMask<DEBUGGER_OUTPUT>& output, bool threadSafe = false);
 		static void UnInit();
 
 		Debugger& operator << (const char* other);

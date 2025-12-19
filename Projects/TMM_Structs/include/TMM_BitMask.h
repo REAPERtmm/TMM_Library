@@ -1,7 +1,7 @@
 #pragma once
 #include <TMM_Setup.h>
 
-#define TMM_START_BITMASK(name) enum name : uint64_t { NONE = 0,
+#define TMM_START_BITMASK(name) enum class name : uint64_t { NONE = 0,
 
 #define TMM_ADD_MASK(index, name) name = 1 << index,
 

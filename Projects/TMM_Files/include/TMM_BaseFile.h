@@ -1,7 +1,10 @@
 #pragma once
 #include <TMM_Setup.h>
-#include <TMM_Debugger.h>
 #include <cstdio>
+
+#ifndef TMM_BASE_FILE
+#define TMM_BASE_FILE
+#endif // !TMM_BASE_FILE
 
 namespace TMM 
 {

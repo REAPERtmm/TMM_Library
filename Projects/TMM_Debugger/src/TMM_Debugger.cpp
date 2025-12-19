@@ -4,6 +4,7 @@
 namespace TMM {
 	Debugger::Debugger()
 	{
+		mThreadSafetyEnabled = false;
 		mErrors = new ERROR_DESCRIPTOR[32];
 		mDescriptor = {};
 		mIsInit = false;
@@ -18,12 +19,12 @@ namespace TMM {
 
 	void Debugger::DisplayError(uint32_t index)
 	{
-		if (index != 0) *Debugger::Get(DBG_ERROR) << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
-		*Debugger::Get(DBG_ERROR) << "= Line     : " << mErrors[index].Line << '\n';
-		*Debugger::Get(DBG_ERROR) << "= Function : " << mErrors[index].FunctionName << '\n';
-		*Debugger::Get(DBG_ERROR) << "= File     : " << mErrors[index].FileName << '\n';
-		*Debugger::Get(DBG_ERROR) << "= Msg      : " << '\n';
-		*Debugger::Get(DBG_ERROR) << mErrors[index].ErrorMsg.c_str() << '\n';
+		if (index != 0) *Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
+		*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "= Line     : " << mErrors[index].Line << '\n';
+		*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "= Function : " << mErrors[index].FunctionName << '\n';
+		*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "= File     : " << mErrors[index].FileName << '\n';
+		*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "= Msg      : " << '\n';
+		*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << mErrors[index].ErrorMsg.c_str() << ENDL;
 	}
 
 	void Debugger::OutputString(const char* txt)
@@ -35,21 +36,18 @@ namespace TMM {
 	{
 		if (mCurrentValid == false) return;
 
-		if (mCurrentValid && (mCurrentFlag & DBG_ERROR)) {
+		if (mCurrentValid && mCurrentFlag.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
 			mErrors[mErrorIndex].ErrorMsg += txt;
 		}
-		if (Utils::CheckMaskLt(OUTPUT_CONSOLE, mDescriptor.Output)) {
-			// TODO : Output in the console*
+		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_CONSOLE)) {
 			std::cout << txt;
 		}
-		if (Utils::CheckMaskLt(OUTPUT_DEBUGGER, mDescriptor.Output)) {
-			// TODO : Output in the debugger
+		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_DEBUGGER)) {
 			OutputDebugStringA(txt);
 		}
-		if (Utils::CheckMaskLt(OUTPUT_LOGS, mDescriptor.Output)) {
-			// TODO : Output into the logs
-			if (fwrite(txt, sizeof(char), length, pFile) != length) {
-				mDescriptor.Output ^= OUTPUT_LOGS;
+		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
+			if (mpOutputFile->Write(txt, length) == false) {
+				mDescriptor.Output ^= DEBUGGER_OUTPUT::OUTPUT_LOGS;
 				OutputString("Failed to write in logs : stopping the log feature");
 			}
 		}
@@ -59,70 +57,67 @@ namespace TMM {
 	{
 		static Debugger debugger;
 		debugger.mCurrentFlag = flags;
-		debugger.mCurrentValid = Utils::CheckMaskLt(flags, debugger.mDescriptor.Flags);
+		debugger.mCurrentValid = debugger.mDescriptor.Flags.Contain(flags);
 		return &debugger;
 	}
 
 	Debugger* Debugger::Get(DEBUGGER_FLAGS flag)
 	{
-#ifdef ENABLE_DBG_THREAD_SAFE
 		Debugger* pDebugger = InternalGet(flag);
-		EnterCriticalSection(&pDebugger->mCS);
+		if (pDebugger->mThreadSafetyEnabled)
+			EnterCriticalSection(&pDebugger->mCS);
 		return pDebugger;
-#else
-		return InternalGet(flag);
-#endif
 	}
 
-	bool Debugger::Init(uint32_t flags, uint32_t output)
+	bool Debugger::Init(const BitMask<DEBUGGER_FLAGS>& flags, const BitMask<DEBUGGER_OUTPUT>& output, bool threadSafe)
 	{
-		Debugger* pDbg = InternalGet(DBG_NONE);
-#ifdef ENABLE_DBG_THREAD_SAFE
-		InitializeCriticalSection(&pDbg->mCS);
-		EnterCriticalSection(&pDbg->mCS);
-#endif
+		Debugger* pDbg = InternalGet(DEBUGGER_FLAGS::NONE);
+		pDbg->mThreadSafetyEnabled = threadSafe;
+		if (pDbg->mThreadSafetyEnabled) {
+			InitializeCriticalSection(&pDbg->mCS);
+			EnterCriticalSection(&pDbg->mCS);
+		}
 		pDbg->mDescriptor.Flags = flags;
 		pDbg->mDescriptor.Output = output;
 
-		if (Utils::CheckMaskLt(OUTPUT_LOGS, pDbg->mDescriptor.Output)) {
-			if (fopen_s(&pDbg->pFile, "Logs.txt", "wb") != 0) {
+		if (pDbg->mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
+			pDbg->mpOutputFile = new TMM::OFile("Logs.txt");
+			if (pDbg->mpOutputFile->ClearAndOpen() == false) {
 				pDbg->OutputString("Failed to open Logs");
-#ifdef ENABLE_DBG_THREAD_SAFE
-				LeaveCriticalSection(&pDbg->mCS);
-#endif
+				if(pDbg->mThreadSafetyEnabled)
+					LeaveCriticalSection(&pDbg->mCS);
 				return false;
 			}
 		}
 		pDbg->mIsInit = true;
-#ifdef ENABLE_DBG_THREAD_SAFE
-		LeaveCriticalSection(&pDbg->mCS);
-#endif
+		if (pDbg->mThreadSafetyEnabled)
+			LeaveCriticalSection(&pDbg->mCS);
 		return true;
 	}
 
 	void Debugger::UnInit()
 	{
-		Debugger* pDbg = InternalGet(DBG_NONE);
-#ifdef ENABLE_DBG_THREAD_SAFE
-		EnterCriticalSection(&pDbg->mCS);
-#endif
+		Debugger* pDbg = InternalGet(DEBUGGER_FLAGS::NONE);
+		if (pDbg->mThreadSafetyEnabled)
+			EnterCriticalSection(&pDbg->mCS);
 		if (pDbg->mErrorIndex > 0) {
-			*Debugger::Get(DBG_ERROR) << "============================\n\n";
+			*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "============================\n\n";
 			for (uint8_t i = 0; i < pDbg->mErrorIndex; ++i) {
 				pDbg->DisplayError(i);
 			}
-			*Debugger::Get(DBG_ERROR) << "============================\n";
+			*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "============================\n";
 		}
 
-		if (Utils::CheckMaskLt(OUTPUT_LOGS, pDbg->mDescriptor.Output)) {
-			fclose(pDbg->pFile);
+		if (pDbg->mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
+			pDbg->mpOutputFile->Close();
+			delete pDbg->mpOutputFile;
 		}
 		delete[] pDbg->mErrors;
 		pDbg->mIsInit = false;
-#ifdef ENABLE_DBG_THREAD_SAFE
-		LeaveCriticalSection(&pDbg->mCS);
-		DeleteCriticalSection(&pDbg->mCS);
-#endif
+		if (pDbg->mThreadSafetyEnabled) {
+			LeaveCriticalSection(&pDbg->mCS);
+			DeleteCriticalSection(&pDbg->mCS);
+		}
 	}
 
 	Debugger& Debugger::operator<<(const char* other)
@@ -202,19 +197,18 @@ namespace TMM {
 	{
 		char txt[2]{ other.Symbol, '\0' };
 		OutputString(txt, 1);
-		if (mCurrentValid && (mCurrentFlag & DBG_ERROR)) {
+		if (mCurrentValid && mCurrentFlag.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
 			++mErrorIndex;
 			if (mErrorIndex >= 32) mErrorIndex = 31;
 		}
-#ifdef ENABLE_DBG_THREAD_SAFE
-		LeaveCriticalSection(&mCS);
-#endif
+		if (mThreadSafetyEnabled)
+			LeaveCriticalSection(&mCS);
 		return *this;
 	}
 
 	Debugger& Debugger::RegisterError(uint64_t line, const char* functionName, const char* fileName)
 	{
-		if (mCurrentValid && Utils::CheckMaskLt(DBG_ERROR, mDescriptor.Flags)) {
+		if (mCurrentValid && mDescriptor.Flags.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
 			mErrors[mErrorIndex].Line = line;
 			mErrors[mErrorIndex].FunctionName = functionName;
 			mErrors[mErrorIndex].FileName = fileName;
