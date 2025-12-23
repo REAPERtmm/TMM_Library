@@ -1,4 +1,6 @@
 #pragma once
+
+// REQUIRED internal include
 #include <TMM_Setup.h>
 #include "TMM_Container.h"
 
@@ -30,7 +32,9 @@ namespace TMM
 		using LIST_NODE = Node<T>;
 		using BASE = Container<uint64_t, T, Node<T>>;
 
+#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
 		bool Execute(const TMM::Function<bool, LIST_NODE&>& callback) override;
+#endif
 		virtual T& operator[](const uint64_t& key) override final;
 		virtual LIST_NODE at(const uint64_t& key) override final;
 		virtual bool TryGet(const uint64_t& key, LIST_NODE* pDest) override final;

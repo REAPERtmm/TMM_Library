@@ -1,6 +1,10 @@
 #pragma once
+
+// REQUIRED internal include
 #include <TMM_Setup.h>
-#include <TMM_Container.h>
+#include "TMM_Container.h"
+
+// REQUIRED external include
 #include <memory>
 
 namespace TMM {
@@ -23,8 +27,9 @@ namespace TMM {
 		virtual void Add(const T& value);
 		virtual void Remove(const T& value)		= 0;
 		virtual void RemoveAt(uint64_t index)	= 0;
-
+#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
 		bool Execute(const TMM::Function<bool, ARRAY_NODE&>& callback) override final;
+#endif
 		virtual T& operator[](const uint64_t& key) override final;
 		virtual ARRAY_NODE at(const uint64_t& key) override final;
 		virtual bool TryGet(const uint64_t& key, ARRAY_NODE* pDest) override final;

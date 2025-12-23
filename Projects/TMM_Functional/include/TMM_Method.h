@@ -1,4 +1,7 @@
 #pragma once
+
+// REQUIRED internal include
+#include <TMM_Setup.h>
 #include "TMM_Callable.h"
 
 namespace TMM {

@@ -1,13 +1,31 @@
 #pragma once
 
+// REQUIRED internal include
 #include <TMM_Setup.h>
 #include <TMM_BitMask.h>
-#include <TMM_OFile.h>
 
+// NOT REQUIRED internal include
+#ifdef TMM_DEBUGGER_FILES_ENABLE
+#include <TMM_OFile.h>
+#endif
+#ifdef TMM_DEBUGGER_MATHS_ENABLE
+#include <TMM_Vectors.h>
+#endif
+
+// REQUIRED external include
 #include <Windows.h>
 #include <iostream>
 #include <string>
 
+#ifdef __ // NDEBUG
+#define DBG_INIT	if(true) {} else TMM::Debugger::Init
+#define LOG_INFO	if(true) {} else *TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_INFO)	<< "[INFO   ] "
+#define LOG_SYSTEM	if(true) {} else *TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_SYSTEM)	<< "[SYSTEM ] "
+#define LOG_WARNING if(true) {} else *TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_WARNING)	<< "[WARNING] "
+#define LOG_ERROR	if(true) {} else TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_ERROR)->RegisterError(__LINE__, __FUNCTION__, __FILE__)	<< "[ERROR  ] "
+#define ENDL		TMM::TMM_ENDL()
+#define DBG_UNINIT	if(true) {} else TMM::Debugger::UnInit
+#else
 #define DBG_INIT	TMM::Debugger::Init
 #define LOG_INFO	*TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_INFO)	<< "[INFO   ] "
 #define LOG_SYSTEM	*TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_SYSTEM)	<< "[SYSTEM ] "
@@ -15,6 +33,7 @@
 #define LOG_ERROR	TMM::Debugger::Get(TMM::DEBUGGER_FLAGS::DBG_ERROR)->RegisterError(__LINE__, __FUNCTION__, __FILE__)	<< "[ERROR  ] "
 #define ENDL		TMM::TMM_ENDL()
 #define DBG_UNINIT	TMM::Debugger::UnInit
+#endif // NDEBUG
 
 namespace TMM {
 
@@ -28,7 +47,9 @@ namespace TMM {
 	TMM_START_BITMASK(DEBUGGER_OUTPUT)
 	TMM_ADD_MASK(0, OUTPUT_CONSOLE)
 	TMM_ADD_MASK(1, OUTPUT_DEBUGGER)
+#ifdef TMM_DEBUGGER_FILES_ENABLE
 	TMM_ADD_MASK(2, OUTPUT_LOGS)
+#endif
 	TMM_END_BITMASK();
 
 	struct DEBUGGER_DESCRIPTOR
@@ -57,7 +78,9 @@ namespace TMM {
 
 		DEBUGGER_DESCRIPTOR mDescriptor;
 
+#ifdef TMM_DEBUGGER_FILES_ENABLE
 		TMM::OFile* mpOutputFile;
+#endif
 
 		ERROR_DESCRIPTOR* mErrors;
 		uint8_t mErrorIndex = 0;
@@ -94,6 +117,25 @@ namespace TMM {
 		Debugger& operator << (int16_t other);
 		Debugger& operator << (int32_t other);
 		Debugger& operator << (int64_t other);
+
+#ifdef TMM_DEBUGGER_MATHS_ENABLE
+
+		template<typename T>
+		Debugger& operator << (const TMM::Vec2<T>& other) {
+			return *this << '(' << other.x << ", " << other.y << ')';
+		}
+
+		template<typename T>
+		Debugger& operator << (const TMM::Vec3<T>& other) {
+			return *this << '(' << other.x << ", " << other.y << ", " << other.z << ')';
+		}
+
+		template<typename T>
+		Debugger& operator << (const TMM::Vec4<T>& other) {
+			return *this << '(' << other.x << ", " << other.y << ", " << other.z << ", " << other.w << ')';
+		}
+
+#endif // TMM_DEBUGGER_MATHS_ENABLE
 
 		Debugger& operator << (TMM_ENDL other);
 

@@ -50,6 +50,7 @@ namespace TMM {
 		}
 	}
 
+#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
 	template<typename T>
 	inline bool Array<T>::Execute(const TMM::Function<bool, ARRAY_NODE&>& callback)
 	{
@@ -62,6 +63,7 @@ namespace TMM {
 
 		return error_code;
 	}
+#endif
 
 	template<typename T>
 	inline T& Array<T>::operator[](const uint64_t& key)

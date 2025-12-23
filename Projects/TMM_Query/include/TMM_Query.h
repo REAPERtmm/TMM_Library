@@ -1,7 +1,7 @@
 #pragma once
 
+// REQUIRED internal include
 #include <TMM_Setup.h>
-
 #include <TMM_Array.h>
 #include <TMM_UnorderedArray.h>
 #include <TMM_Method.h>

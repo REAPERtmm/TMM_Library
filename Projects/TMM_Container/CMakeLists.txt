@@ -23,25 +23,42 @@ add_library( TMM_Container_LIB ${TMM_Container_SRC} ${TMM_Container_HEADERS} )
 target_compile_features( TMM_Container_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Container_LIB PUBLIC include/ )
 
+# REQUIRED
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup
 		${CMAKE_CURRENT_BINARY_DIR}/TMM_Setup_build
 	)
 endif()
-if(NOT TARGET TMM_Functional_LIB)
-	add_subdirectory(
-		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Functional
-		${CMAKE_CURRENT_BINARY_DIR}/TMM_Functional_build
-	)
-endif()
-
 
 target_link_libraries(
 	TMM_Container_LIB
 	PUBLIC
 		TMM_Setup_LIB
-		TMM_Functional_LIB
 )
+
+# NOT REQUIRED
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Functional/CMakeLists.txt")
+	message("INFO / TMM_Container_LIB Support TMM_Functional_LIB !")
+	if(NOT TARGET TMM_Functional_LIB)
+		add_subdirectory(
+			${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Functional
+			${CMAKE_CURRENT_BINARY_DIR}/TMM_Functional_build
+		)
+	endif()
+	target_compile_definitions(TMM_Container_LIB
+		PUBLIC TMM_CONTAINER_FUNCTIONAL_ENABLE
+	)
+	target_link_libraries(
+		TMM_Container_LIB
+		PUBLIC
+			TMM_Functional_LIB
+	)
+else()
+	message("INFO / TMM_Container_LIB Does not Support TMM_Functional_LIB !")
+endif()
+
+
+
 
 

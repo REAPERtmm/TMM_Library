@@ -1,7 +1,10 @@
 #pragma once
-#include <immintrin.h>
+// REQUIRED internal inclusion
+#include <TMM_Setup.h>
 #include <TMM_Vectors.h>
 
+// REQUIRED external inclusion
+#include <immintrin.h>
 
 // ===  OP Vec        ===
 
@@ -207,5 +210,3 @@ namespace TMM {
 
 	};
 }
-
-#include "TMM_SSEMath.hpp"

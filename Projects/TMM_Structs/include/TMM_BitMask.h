@@ -1,4 +1,6 @@
 #pragma once
+
+// REQUIRED internal include
 #include <TMM_Setup.h>
 
 #define TMM_START_BITMASK(name) enum class name : uint64_t { NONE = 0,

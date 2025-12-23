@@ -1,5 +1,9 @@
 #pragma once
+
+// REQUIRED internal include
 #include <TMM_Setup.h>
+
+// REQUIRED external include
 #include <Windows.h>
 
 namespace TMM

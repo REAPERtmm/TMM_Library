@@ -45,12 +45,14 @@ namespace TMM {
 		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_DEBUGGER)) {
 			OutputDebugStringA(txt);
 		}
+#ifdef TMM_DEBUGGER_FILES_ENABLE
 		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
 			if (mpOutputFile->Write(txt, length) == false) {
 				mDescriptor.Output ^= DEBUGGER_OUTPUT::OUTPUT_LOGS;
 				OutputString("Failed to write in logs : stopping the log feature");
 			}
 		}
+#endif
 	}
 
 	Debugger* Debugger::InternalGet(DEBUGGER_FLAGS flags)
@@ -79,7 +81,7 @@ namespace TMM {
 		}
 		pDbg->mDescriptor.Flags = flags;
 		pDbg->mDescriptor.Output = output;
-
+#ifdef TMM_DEBUGGER_FILES_ENABLE
 		if (pDbg->mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
 			pDbg->mpOutputFile = new TMM::OFile("Logs.txt");
 			if (pDbg->mpOutputFile->ClearAndOpen() == false) {
@@ -89,6 +91,7 @@ namespace TMM {
 				return false;
 			}
 		}
+#endif
 		pDbg->mIsInit = true;
 		if (pDbg->mThreadSafetyEnabled)
 			LeaveCriticalSection(&pDbg->mCS);
@@ -107,11 +110,12 @@ namespace TMM {
 			}
 			*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "============================\n";
 		}
-
+#ifdef TMM_DEBUGGER_FILES_ENABLE
 		if (pDbg->mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
 			pDbg->mpOutputFile->Close();
 			delete pDbg->mpOutputFile;
 		}
+#endif
 		delete[] pDbg->mErrors;
 		pDbg->mIsInit = false;
 		if (pDbg->mThreadSafetyEnabled) {

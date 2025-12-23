@@ -1,5 +1,8 @@
 #pragma once
-#include <TMM_Array.h>
+
+// REQUIRED internal include
+#include <TMM_Setup.h>
+#include "TMM_Array.h"
 
 namespace TMM {
 

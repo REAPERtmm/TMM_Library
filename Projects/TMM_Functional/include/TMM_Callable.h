@@ -1,5 +1,8 @@
 #pragma once
 
+// REQUIRED internal include
+#include <TMM_Setup.h>
+
 namespace TMM {
 	template<typename Ret, typename... Args>
 	class Callable {

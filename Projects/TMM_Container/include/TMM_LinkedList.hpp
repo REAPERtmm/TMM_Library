@@ -88,6 +88,7 @@ namespace TMM
 		return result;
 	}
 
+#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
 	template<typename T>
 	inline bool LinkedList<T>::Execute(const TMM::Function<bool, LIST_NODE&>& callback)
 	{
@@ -98,6 +99,7 @@ namespace TMM
 		}
 		return true;
 	}
+#endif
 
 	template<typename T>
 	inline T& LinkedList<T>::operator[](const uint64_t& key)

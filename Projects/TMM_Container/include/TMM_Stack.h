@@ -1,4 +1,6 @@
 #pragma once
+
+// REQUIRED internal include
 #include <TMM_Setup.h>
 #include "TMM_LinkedList.h"
 

@@ -1,7 +1,8 @@
 #pragma once
+
+// REQUIRED internal include
 #include <TMM_Setup.h>
 #include <TMM_Function.h>
-
 #include "TMM_ThreadContext.h"
 
 namespace TMM 

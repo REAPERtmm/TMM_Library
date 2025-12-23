@@ -1,10 +1,10 @@
 #pragma once
-#include <TMM_Setup.h>
-#include <cstdio>
 
-#ifndef TMM_BASE_FILE
-#define TMM_BASE_FILE
-#endif // !TMM_BASE_FILE
+// REQUIRED internal include
+#include <TMM_Setup.h>
+
+// REQUIRED external include
+#include <cstdio>
 
 namespace TMM 
 {
