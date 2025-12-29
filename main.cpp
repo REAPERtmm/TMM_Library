@@ -1,6 +1,5 @@
 #include <TMM_Debugger.h>
-#include <TMM_Vectors.h>
-#include <TMM_Matrices.h>
+#include <TMM_BitField.h>
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -23,17 +22,16 @@ int main(int argc, char* argv[])
 	DBG_INIT(flags, outputs, true);
 #endif // !NDEBUG
 
-
-	TMM::Matf4x4 mat44_0;
-	TMM::Matf4x4 mat44_1(
-		1.0f, 9.0f, 3.0f, 9.0f,
-		9.0f, 6.0f, 7.0f, 8.0f,
-		4.0f, 2.0f, 3.0f, 8.0f,
-		5.0f, 6.0f, 7.0f, 8.0f
+	unsigned char mask = TMM_BITFIELD_MASK(
+		TMM_OFF, TMM_ON, TMM_OFF, TMM_ON, TMM_OFF, TMM_ON, TMM_OFF, TMM_ON, TMM_OFF, TMM_ON
 	);
 
-	auto m = mat44_0 + mat44_1;
-	float det = m.Determinant();
+	TMM::BitField field;
+	field.ApplyOr(mask);
+
+	for (int i = 0; i < 8; ++i) {
+		LOG_INFO << "Le bit " << i << " : " << field.Get(i) << ENDL;
+	}
 	
 	DBG_UNINIT();
 

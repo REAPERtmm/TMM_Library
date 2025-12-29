@@ -17,12 +17,25 @@
 #define ALIGN16 __attribute__((aligned(16)))
 #endif
 
+// Compute Manip
+
 #define TMM_MAX(a, b) ((a) < (b) ? (b) : (a))
 #define TMM_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define TMM_CLAMP(v, v_min, v_max) ((v) < (v_min) ? (v_min) : ((v) > (v_max) ? (v_max) : (v)))
 #define TMM_CLAMP01(v) TMM_CLAMP(v, 0, 1)
 #define TMM_SWAP(a, b) auto temp = (a); (a) = (b); (b) = temp;
 #define TMM_SWAP_XOR(a, b) (a) = (a) ^ (b); (b) = (a) ^ (b); (a) = (a) ^ (b);
+
+// Bit Manip
+
+#define TMM_ON  0b1
+#define TMM_OFF 0b0
+#define TMM_BITFIELD_MASK_ALL  0b11111111
+#define TMM_BITFIELD_MASK_NONE 0b00000000
+#define TMM_BITFIELD_MASK(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7) ( \
+				   (bit0) | ((bit1) << 1) | ((bit2) << 2 ) | ((bit3) << 3 ) | \
+			((bit4) << 4) | ((bit5) << 5) | ((bit6) << 6 ) | ((bit7) << 7 ) \
+	)
 
 // REQUIRED external include
 #include <stdint.h>
