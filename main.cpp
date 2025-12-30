@@ -1,7 +1,25 @@
 #include <TMM_Debugger.h>
 #include <TMM_BitField.h>
+#include <TMM_OrderedArray.h>
+#include <TMM_Stack.h>
 
 #pragma comment(lib, "Winmm.lib")
+
+bool Func(const uint64_t& i, int& value) {
+	value++;
+	return true;
+}
+
+bool Offset(int* left, int& value, int* right) {
+	if (left == nullptr)
+	{
+		value = 0;
+	}
+	else {
+		value = *left;
+	}
+	return true;
+}
 
 int main(int argc, char* argv[]) 
 {
@@ -22,17 +40,33 @@ int main(int argc, char* argv[])
 	DBG_INIT(flags, outputs, true);
 #endif // !NDEBUG
 
-	unsigned char mask = TMM_BITFIELD_MASK(
-		TMM_OFF, TMM_ON, TMM_OFF, TMM_ON, TMM_OFF, TMM_ON, TMM_OFF, TMM_ON, TMM_OFF, TMM_ON
-	);
+	// TODO : Profiler / Benchmark / Time Testings
 
-	TMM::BitField field;
-	field.ApplyOr(mask);
+	TMM::ArrayOrdered<int> arr;
+	TMM::Stack<int> stack;
+	auto f = TMM::MakeFunction(Offset);
 
-	for (int i = 0; i < 8; ++i) {
-		LOG_INFO << "Le bit " << i << " : " << field.Get(i) << ENDL;
-	}
+	stack.PushStack(1);
+	stack.PushStack(2);
+	stack.PushStack(3);
+	stack.PushStack(4);
+	stack.PushStack(5);
+	stack.Execute(f);
+
+	arr.Add(1);
+	arr.Add(2);
+	arr.Add(3);
+	arr.Add(4);
+	arr.Add(5);
 	
+	for (int i = 0; i < arr.Size(); ++i) {
+		LOG_INFO << "[" << i << "] = " << arr[i] << ENDL;
+	}
+
+	for (int i = 0; i < arr.Size(); ++i) {
+		LOG_INFO << "[STACK] = " << stack.PopStack() << ENDL;
+	}
+
 	DBG_UNINIT();
 
 	return 0;

@@ -16,7 +16,8 @@ namespace TMM
 		void PushStack(const T& value);
 		T PopStack();
 		bool TryPopStack(T* pDest);
-		bool Execute(const TMM::Function<bool, TMM::Node<T>&>& callback) override;
+		bool Execute(const TMM::Function<bool, const uint64_t&, T&>& callback) override;
+		bool Execute(const TMM::Function<bool, T*, T&, T*>& callback) override;
 	};
 }
 

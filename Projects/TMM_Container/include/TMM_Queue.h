@@ -17,7 +17,6 @@ namespace TMM
 		void Enqueue(const T& value);
 		T Dequeue();
 		bool TryDequeue(T* pDest);
-		bool Execute(const TMM::Function<bool, TMM::Node<T>&>& callback) override;
 	};
 }
 

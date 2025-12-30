@@ -5,33 +5,27 @@ namespace TMM {
 	template<typename T>
 	inline void Array<T>::InternalAllocate(uint64_t capacity)
 	{
-		mCapacity = capacity;
+		InternalGetCapacity() = capacity;
 		T* temp = new T[capacity];
-		memcpy(temp, mpData, BASE::mSize);
-		delete[] mpData;
-		mpData = temp;
-	}
-
-	template<typename T>
-	inline T& Array<T>::InternalGet(const uint64_t& key)
-	{
-		return mpData[key];
+		memcpy(temp, InternalGetStartPtr(), InternalGetSize());
+		delete[] InternalGetStartPtr();
+		InternalGetStartPtr() = temp;
 	}
 
 	template<typename T>
 	inline Array<T>::Array()
-		: BASE(0)
 	{
-		mpData = new T[16];
-		mCapacity = 16;
+		InternalGetStartPtr() = new T[16];
+		InternalGetCapacity() = 16;
+		InternalGetSize() = 0;
 	}
 
 	template<typename T>
 	inline Array<T>::Array(uint64_t allocationByteSize)
-		: BASE(0)
 	{
-		mpData = new T[allocationByteSize];
-		mCapacity = allocationByteSize;
+		InternalGetStartPtr() = new T[allocationByteSize];
+		InternalGetCapacity() = allocationByteSize;
+		InternalGetSize() = 0;
 	}
 
 	template<typename T>
@@ -41,29 +35,40 @@ namespace TMM {
 	}
 
 	template<typename T>
+	inline bool Array<T>::TryGet(const uint64_t& key, T* pDest)
+	{
+		if (InternalCheckInBound(key) == false) return false;
+		*pDest = InternalGet(key);
+		return true;
+	}
+
+	template<typename T>
 	void Array<T>::Add(const T& value)
 	{
-		mpData[this->mSize] = value;
-		this->mSize++;
-		if (this->mSize == mCapacity) {
+		mpData[mSize] = value;
+		InternalIncrementSize();
+		if (InternalGetSize() == mCapacity) {
 			InternalAllocate(mCapacity * 2);
 		}
 	}
 
 #ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
 	template<typename T>
-	inline bool Array<T>::Execute(const TMM::Function<bool, ARRAY_NODE&>& callback)
+	inline bool Array<T>::Execute(const TMM::Function<bool, const uint64_t&, T&>& callback)
 	{
 		bool error_code = true;
-
-		for (uint64_t i = 0; i < this->Size(); ++i) {
-			ARRAY_NODE node = this->at(i);
-			error_code &= callback(node);
+		for (uint64_t i = 0; i < InternalGetSize(); ++i) {
+			error_code &= callback(i, InternalGet(i));
 		}
-
 		return error_code;
 	}
 #endif
+
+	template<typename T>
+	inline uint64_t Array<T>::Size()
+	{
+		return InternalGetSize();
+	}
 
 	template<typename T>
 	inline T& Array<T>::operator[](const uint64_t& key)
@@ -72,20 +77,8 @@ namespace TMM {
 	}
 
 	template<typename T>
-	inline Array<T>::ARRAY_NODE Array<T>::at(const uint64_t& key)
+	inline const T& Array<T>::at(const uint64_t& key) const
 	{
-		ARRAY_NODE node;
-		node.key = key;
-		node.content = InternalGet(key);
-		return node;
-	}
-
-	template<typename T>
-	inline bool Array<T>::TryGet(const uint64_t& key, ARRAY_NODE* pDest)
-	{
-		if (this->InternalInBounds(key) == false) return false;
-		pDest->key = key;
-		pDest->content = InternalGet(key);
-		return true;
+		return InternalGet(key);
 	}
 }

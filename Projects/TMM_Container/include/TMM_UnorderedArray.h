@@ -9,9 +9,9 @@ namespace TMM {
 	template<typename T>
 	class ArrayUnordered : public Array<T> {
 	public:
-		ArrayUnordered();
-		ArrayUnordered(uint64_t allacationByteSize);
-		virtual ~ArrayUnordered() override;
+		ArrayUnordered() : Array<T>() {}
+		ArrayUnordered(uint64_t allacationByteSize) : Array<T>(allacationByteSize) {}
+		virtual ~ArrayUnordered() override {}
 
 		virtual void Remove(const T& value) override;
 		virtual void RemoveAt(uint64_t index) override;

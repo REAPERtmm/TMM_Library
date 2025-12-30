@@ -14,30 +14,58 @@ namespace TMM
 	};
 
 	template<typename T>
-	class LinkedList : public TMM::Container<uint64_t, T, Node<T>>
+	class LinkedList : public TMM::Container<uint64_t, T>
 	{
 	protected:
+		uint64_t mSize;
 		Node<T>* mpFirst;
 		Node<T>* mpLast;
 
+		// constexpr inline accessor
+		constexpr __forceinline Node<T>*& InternalGetFirst() { return mpFirst; }
+		constexpr __forceinline const Node<T>* const& InternalGetFirst() const { return mpFirst; }
+		constexpr __forceinline Node<T>*& InternalGetLast() { return mpLast; }
+		constexpr __forceinline const Node<T>* const& InternalGetLast() const { return mpLast; }
+		constexpr __forceinline uint64_t& InternalGetSize() { return mSize; }
+		constexpr __forceinline const uint64_t& InternalGetSize() const { return mSize; }
+		constexpr __forceinline void InternalIncrementSize() { ++mSize; }
+		constexpr __forceinline void InternalDecrementSize() { --mSize; }
+		constexpr __forceinline bool InternalCheckInBound(uint64_t index) { return index < 0 || index >= mSize; }
+		
 		LinkedList();
 		virtual ~LinkedList();
 
-		void PushFirst(const T& value);
-		void PushLast(const T& value);
+		void InternalPushFirst(const T& value);
+		void InternalPushLast(const T& value);
 
-		T PopFirst();
-		T PopLast();
+		T InternalPopFirst();
+		T InternalPopLast();
+
 	public:
-		using LIST_NODE = Node<T>;
-		using BASE = Container<uint64_t, T, Node<T>>;
-
 #ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
-		bool Execute(const TMM::Function<bool, LIST_NODE&>& callback) override;
+		/// <summary>
+		/// Execute a fonction on every element in the list with as input : (const uint64_t& index, T& element)
+		/// </summary>
+		/// <returns>Return if all of the callbacks succeded.</returns>
+		virtual bool Execute(const TMM::Function<bool, const uint64_t&, T&>& callback) override;
+		/// <summary>
+		/// Execute a fonction on every element in the list with as input : (T* pPrevious, T& element, T* pNext)
+		/// </summary>
+		/// <returns>Return if all of the callbacks succeded.</returns>
+		virtual bool Execute(const TMM::Function<bool, T*, T&, T*>& callback);
 #endif
-		virtual T& operator[](const uint64_t& key) override final;
-		virtual LIST_NODE at(const uint64_t& key) override final;
-		virtual bool TryGet(const uint64_t& key, LIST_NODE* pDest) override final;
+
+		// Return the amount of different KEYS
+		virtual uint64_t Size() override final;
+
+		// Return the CONTENT associated with a KEY
+		virtual T& operator[](const uint64_t& key);
+
+		// Return the CONTENT associated with a KEY
+		virtual const T& at(const uint64_t& key) const override final;
+
+		// Try to access the CONTENT associated with a KEY and return if it succeded
+		virtual bool TryGet(const uint64_t& key, T* pDest) override final;
 	};
 
 }
