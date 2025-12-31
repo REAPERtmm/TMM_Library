@@ -1,7 +1,6 @@
 #include "TMM_Container.h"
 
-namespace TMM {
-
-
+namespace TMM
+{
 
 }

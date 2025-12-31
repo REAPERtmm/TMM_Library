@@ -5,7 +5,9 @@
 
 namespace TMM {
 	template<typename Ret, typename... Args>
-	class Callable {
+	struct Callable {
+	public:
+		virtual ~Callable() = default;
 		virtual Ret Call(Args... args) const = 0;
 		virtual Ret operator()(Args... args) const = 0;
 	};

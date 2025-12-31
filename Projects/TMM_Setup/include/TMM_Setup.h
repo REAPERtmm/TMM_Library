@@ -13,8 +13,10 @@
 
 #ifdef _MSC_VER
 #define ALIGN16 __declspec(align(16))
+#define ALIGN(size) __declspec(align(size))
 #else
 #define ALIGN16 __attribute__((aligned(16)))
+#define ALIGN(size) __attribute__((aligned(size)))
 #endif
 
 // Compute Manip
@@ -58,6 +60,31 @@ namespace TMM {
 	};
 
 	template<typename T>
+	struct is_array {
+		static constexpr bool value = false;
+	};
+
+	template<typename T, uint64_t SIZE>
+	struct is_array<T[SIZE]> {
+		static constexpr bool value = true;
+	};
+
+	template<typename T>
+	struct is_function {
+		static constexpr bool value = false;
+	};
+
+	template<typename Ret, typename... Args>
+	struct is_function<Ret(Args...)> {
+		static constexpr bool value = true;
+	};
+
+	template<typename Ret, typename... Args>
+	struct is_function<Ret(Args...) noexcept> {
+		static constexpr bool value = true;
+	};
+
+	template<typename T>
 	struct remove_ref { using type = T; };
 
 	template<typename T>
@@ -68,6 +95,50 @@ namespace TMM {
 
 	template<typename T>
 	using remove_ref_t = typename remove_ref<T>::type;
+
+	// select<sizeof(T) > 1>::Apply<int, char>
+	// si (sizeof(T) est superieur à 1) alors (int) sinon (char)
+
+	template <bool>
+	struct select { 
+		template <class _Ty1, class>
+		using Apply = _Ty1;
+	};
+
+	template <>
+	struct select<false> {
+		template <class, class _Ty2>
+		using Apply = _Ty2;
+	};
+
+	template <class... _Types>
+	using void_t = void;
+
+	template <class T, class = void>
+	struct Add_pointer {
+		using type = T;
+	};
+
+	template<class T>
+	struct Add_pointer<T, void_t<remove_ref_t<T>>*> { 
+		using type = remove_ref_t<T>*;
+	};
+
+	template <class T>
+		struct Add_pointer_t {
+		using type = typename Add_pointer<T>::type;
+	};
+
+
+	template <class T>
+	constexpr T&& forward(remove_ref_t<T>& _Arg) noexcept {
+		return static_cast<T&&>(_Arg);
+	}
+
+	template <class T>
+	constexpr T&& forward(remove_ref_t<T>&& _Arg) noexcept {
+		return static_cast<T&&>(_Arg);
+	}
 
 	template<typename T, typename... Ts>
 	concept OneOf = is_one_of<T, Ts...>::value;
@@ -84,9 +155,26 @@ namespace TMM {
 		float, double
 	>;
 
-	template<typename Enum>
-	constexpr bool IsEnum = __is_enum(Enum);
+	template<typename T>
+	constexpr bool IsFunction = is_function<T>::value;
+
+	template<typename T>
+	constexpr bool IsArray = is_array<T>::value;
+
+	template<typename T>
+	constexpr bool IsEnum = __is_enum(T);
 
 	template<typename Base, typename Derived>
 	constexpr bool IsBaseOf = __is_base_of(Base, Derived);
+
+	// return : if (T is a function) => a ptr to this function else if (T is an array) => a ptr to this array
+	template <class T>
+	struct decay {
+		using _T1 = remove_ref_t<T>;
+		using _T2 = typename select<IsFunction<_T1>>::template Apply<Add_pointer_t<_T1>, _T1>;
+		using type = typename select<IsArray<_T1>>::template Apply<Add_pointer_t<_T1>, _T2>;
+	};
+	
+	template <class T>
+	using decay_t = decay<T>::type;
 }

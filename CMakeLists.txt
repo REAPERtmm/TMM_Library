@@ -29,9 +29,9 @@ if(NOT TARGET TMM_Functional_LIB)
     add_subdirectory("Projects/TMM_Functional/")
 endif()
 
-message(STATUS "Including TMM_Container at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Container/")
-if(NOT TARGET TMM_Container_LIB)
-    add_subdirectory("Projects/TMM_Container/")
+message(STATUS "Including TMM_Collection at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Collection/")
+if(NOT TARGET TMM_Collection_LIB)
+    add_subdirectory("Projects/TMM_Collection/")
 endif()
 
 message(STATUS "Including TMM_Query at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Query/")
@@ -56,7 +56,7 @@ target_link_libraries(
         TMM_Structs_LIB
         TMM_Maths_LIB
         TMM_Debugger_LIB
-        TMM_Container_LIB
+        TMM_Collection_LIB
         TMM_Functional_LIB
         TMM_Query_LIB
         TMM_Threading_LIB

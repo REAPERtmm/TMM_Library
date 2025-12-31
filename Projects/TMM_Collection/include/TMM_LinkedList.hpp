@@ -89,10 +89,10 @@ namespace TMM
 		return result;
 	}
 
-#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
+#ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
 
 	template<typename T>
-	inline bool LinkedList<T>::Execute(const TMM::Function<bool, const uint64_t&, T&>& callback)
+	inline bool LinkedList<T>::Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback)
 	{
 		bool error_code = true;
 		Node<T>* pNode = InternalGetFirst();
@@ -107,7 +107,7 @@ namespace TMM
 	}
 
 	template<typename T>
-	inline bool LinkedList<T>::Execute(const TMM::Function<bool, T*, T&, T*>& callback)
+	inline bool LinkedList<T>::Execute(const TMM::Callable<bool, T*, T&, T*>& callback)
 	{
 		if (InternalGetFirst() == nullptr) return true;
 		bool error_code = true;
@@ -129,7 +129,7 @@ namespace TMM
 #endif
 
 	template<typename T>
-	inline uint64_t LinkedList<T>::Size()
+	inline uint64_t LinkedList<T>::Size() const
 	{
 		return InternalGetSize();
 	}

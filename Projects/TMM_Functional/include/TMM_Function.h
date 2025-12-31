@@ -4,6 +4,8 @@
 #include <TMM_Setup.h>
 #include "TMM_Callable.h"
 
+#define TMM_LAMBDA +[]
+
 namespace TMM {
 	template<typename Ret, typename... Args>
 	class Function : public Callable<Ret, Args...> {

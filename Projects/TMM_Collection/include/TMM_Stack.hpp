@@ -28,8 +28,10 @@ namespace TMM
 		return true;
 	}
 
+#ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
+
 	template<typename T>
-	inline bool Stack<T>::Execute(const TMM::Function<bool, const uint64_t&, T&>& callback)
+	inline bool Stack<T>::Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback)
 	{
 		bool error_code = true;
 		Node<T>* pNode = this->InternalGetLast();
@@ -44,7 +46,7 @@ namespace TMM
 	}
 
 	template<typename T>
-	inline bool Stack<T>::Execute(const TMM::Function<bool, T*, T&, T*>& callback)
+	inline bool Stack<T>::Execute(const TMM::Callable<bool, T*, T&, T*>& callback)
 	{
 		bool error_code = true;
 		Node<T>* pNode = this->InternalGetLast();
@@ -61,4 +63,6 @@ namespace TMM
 		}
 		return error_code;
 	}
+#endif // TMM_COLLECTION_FUNCTIONAL_ENABLE
+
 }

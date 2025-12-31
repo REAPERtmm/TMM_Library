@@ -1,25 +1,17 @@
 #include <TMM_Debugger.h>
-#include <TMM_BitField.h>
-#include <TMM_OrderedArray.h>
-#include <TMM_Stack.h>
+#include <TMM_Functional.h>
+#include <TMM_Container.h>
 
 #pragma comment(lib, "Winmm.lib")
 
-bool Func(const uint64_t& i, int& value) {
-	value++;
-	return true;
-}
-
-bool Offset(int* left, int& value, int* right) {
-	if (left == nullptr)
-	{
-		value = 0;
+struct A
+{
+	int v = 5;
+	bool f(const uint64_t& index, int& value) {
+		value = value + v;
+		return true;
 	}
-	else {
-		value = *left;
-	}
-	return true;
-}
+};
 
 int main(int argc, char* argv[]) 
 {
@@ -40,32 +32,54 @@ int main(int argc, char* argv[])
 	DBG_INIT(flags, outputs, true);
 #endif // !NDEBUG
 
-	// TODO : Profiler / Benchmark / Time Testings
+	int Start_offset = 10;
+	A a;
+	TMM::Container<5, int> data(0);
 
-	TMM::ArrayOrdered<int> arr;
-	TMM::Stack<int> stack;
-	auto f = TMM::MakeFunction(Offset);
+	TMM::Callable<bool, const uint64_t&, int&>* proc[3];
+	// add Start_offset
+	proc[0] = new TMM::LambdaMethod<bool, const uint64_t&, int&>(
+		[&Start_offset](const uint64_t& index, int& value) -> bool { value = value + Start_offset; return true; }
+	);
 
-	stack.PushStack(1);
-	stack.PushStack(2);
-	stack.PushStack(3);
-	stack.PushStack(4);
-	stack.PushStack(5);
-	stack.Execute(f);
+	// add 1
+	proc[1] = new TMM::Function<bool, const uint64_t&, int&>(
+		[](const uint64_t& index, int& value) { value = value + 1; return true; }
+	);
 
-	arr.Add(1);
-	arr.Add(2);
-	arr.Add(3);
-	arr.Add(4);
-	arr.Add(5);
-	
-	for (int i = 0; i < arr.Size(); ++i) {
-		LOG_INFO << "[" << i << "] = " << arr[i] << ENDL;
+	// add a::v
+	proc[2] = new TMM::Method<A, bool, const uint64_t&, int&>(&a, &A::f);
+
+	LOG_INFO << "START VALUES : " << ENDL;
+	for (int i = 0; i < data.Size(); ++i)
+	{
+		LOG_INFO << "[" << i << "] = " << data[i] << ENDL;
 	}
 
-	for (int i = 0; i < arr.Size(); ++i) {
-		LOG_INFO << "[STACK] = " << stack.PopStack() << ENDL;
+	data.Execute(*proc[0]);
+	LOG_INFO << "FIRST PROC : " << ENDL;
+	for (int i = 0; i < data.Size(); ++i)
+	{
+		LOG_INFO << "[" << i << "] = " << data[i] << ENDL;
 	}
+
+	data.Execute(*proc[1]);
+	LOG_INFO << "SECOND PROC : " << ENDL;
+	for (int i = 0; i < data.Size(); ++i)
+	{
+		LOG_INFO << "[" << i << "] = " << data[i] << ENDL;
+	}
+
+	data.Execute(*proc[2]);
+	LOG_INFO << "THIRD PROC : " << ENDL;
+	for (int i = 0; i < data.Size(); ++i)
+	{
+		LOG_INFO << "[" << i << "] = " << data[i] << ENDL;
+	}
+
+	delete proc[0];
+	delete proc[1];
+	delete proc[2];
 
 	DBG_UNINIT();
 

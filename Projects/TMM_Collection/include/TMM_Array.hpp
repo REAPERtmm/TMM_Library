@@ -52,9 +52,9 @@ namespace TMM {
 		}
 	}
 
-#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
+#ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
 	template<typename T>
-	inline bool Array<T>::Execute(const TMM::Function<bool, const uint64_t&, T&>& callback)
+	inline bool Array<T>::Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback)
 	{
 		bool error_code = true;
 		for (uint64_t i = 0; i < InternalGetSize(); ++i) {
@@ -65,7 +65,7 @@ namespace TMM {
 #endif
 
 	template<typename T>
-	inline uint64_t Array<T>::Size()
+	inline uint64_t Array<T>::Size() const
 	{
 		return InternalGetSize();
 	}

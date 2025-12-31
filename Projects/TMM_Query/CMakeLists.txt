@@ -29,10 +29,10 @@ if(NOT TARGET TMM_Functional_LIB)
 		${CMAKE_CURRENT_BINARY_DIR}/TMM_Functional_build
 	)
 endif()
-if(NOT TARGET TMM_Container_LIB)
+if(NOT TARGET TMM_Collection_LIB)
 	add_subdirectory(
-		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Container
-		${CMAKE_CURRENT_BINARY_DIR}/TMM_Container_build
+		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Collection
+		${CMAKE_CURRENT_BINARY_DIR}/TMM_Collection_build
 	)
 endif()
 if(NOT TARGET TMM_Setup_LIB)
@@ -46,7 +46,7 @@ target_link_libraries(
 	TMM_Query_LIB
 	PUBLIC
 		TMM_Functional_LIB
-		TMM_Container_LIB
+		TMM_Collection_LIB
 		TMM_Setup_LIB
 )
 

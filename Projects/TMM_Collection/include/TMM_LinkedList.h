@@ -2,7 +2,7 @@
 
 // REQUIRED internal include
 #include <TMM_Setup.h>
-#include "TMM_Container.h"
+#include "TMM_Collection.h"
 
 namespace TMM 
 {
@@ -14,7 +14,7 @@ namespace TMM
 	};
 
 	template<typename T>
-	class LinkedList : public TMM::Container<uint64_t, T>
+	class LinkedList : public TMM::Collection<uint64_t, T>
 	{
 	protected:
 		uint64_t mSize;
@@ -42,21 +42,21 @@ namespace TMM
 		T InternalPopLast();
 
 	public:
-#ifdef TMM_CONTAINER_FUNCTIONAL_ENABLE
+#ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
 		/// <summary>
 		/// Execute a fonction on every element in the list with as input : (const uint64_t& index, T& element)
 		/// </summary>
 		/// <returns>Return if all of the callbacks succeded.</returns>
-		virtual bool Execute(const TMM::Function<bool, const uint64_t&, T&>& callback) override;
+		virtual bool Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback) override;
 		/// <summary>
 		/// Execute a fonction on every element in the list with as input : (T* pPrevious, T& element, T* pNext)
 		/// </summary>
 		/// <returns>Return if all of the callbacks succeded.</returns>
-		virtual bool Execute(const TMM::Function<bool, T*, T&, T*>& callback);
+		virtual bool Execute(const TMM::Callable<bool, T*, T&, T*>& callback);
 #endif
 
 		// Return the amount of different KEYS
-		virtual uint64_t Size() override final;
+		virtual uint64_t Size() const override final;
 
 		// Return the CONTENT associated with a KEY
 		virtual T& operator[](const uint64_t& key);
