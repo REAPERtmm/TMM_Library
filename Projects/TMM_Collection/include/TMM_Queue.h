@@ -6,7 +6,9 @@
 
 namespace TMM 
 {
-
+	/// <summary>
+	/// A Data Structure representing a queue (0 represent the next element retrieved)
+	/// </summary>
 	template<typename T>
 	class Queue : public TMM::LinkedList<T> 
 	{

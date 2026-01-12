@@ -54,14 +54,122 @@ namespace TMM {
 
 #ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
 	template<typename T>
-	inline bool Array<T>::Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback)
-	{
+	inline bool Array<T>::Execute(
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
 		bool error_code = true;
 		for (uint64_t i = 0; i < InternalGetSize(); ++i) {
 			error_code &= callback(i, InternalGet(i));
 		}
 		return error_code;
 	}
+
+	template<typename T>
+	inline bool Array<T>::ExecuteIf(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		for (uint64_t i = 0; i < InternalGetSize(); ++i) {
+			if (condition(i, InternalGet(i))) {
+				error_code &= callback(i, InternalGet(i));
+			}
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool Array<T>::ExecuteUntil(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		for (uint64_t i = 0; i < InternalGetSize(); ++i) {
+			if (condition(i, InternalGet(i))) {
+				return error_code;
+			}
+			error_code &= callback(i, InternalGet(i));
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool Array<T>::ExecuteUntil(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback,
+		const uint64_t& start
+	) {
+		bool error_code = true;
+		for (uint64_t i = start; i < InternalGetSize(); ++i) {
+			if (condition(i, InternalGet(i))) {
+				return error_code;
+			}
+			error_code &= callback(i, InternalGet(i));
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool Array<T>::ExecuteFrom(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		uint64_t i = 0;
+		for (;i < InternalGetSize(); ++i) {
+			if (condition(i, InternalGet(i))) {
+				break;
+			}
+		}
+		for (;i < InternalGetSize(); ++i) {
+			error_code &= callback(i, InternalGet(i));
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool Array<T>::ExecuteFrom(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback,
+		const uint64_t& end
+	) {
+		bool error_code = true;
+		uint64_t i = 0;
+		for (;i < InternalGetSize(); ++i) {
+			if (condition(i, InternalGet(i))) {
+				break;
+			}
+		}
+		for (;i < end; ++i) {
+			error_code &= callback(i, InternalGet(i));
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool Array<T>::ExecuteBetween(
+		const TMM::Callable<bool, const uint64_t&, T&>& conditionStart,
+		const TMM::Callable<bool, const uint64_t&, T&>& conditionEnd,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		uint64_t i = 0;
+		for (;i < InternalGetSize(); ++i) {
+			if (conditionStart(i, InternalGet(i))) {
+				error_code &= callback(i, InternalGet(i));
+				++i;
+				break;
+			}
+		}
+		for (;i < InternalGetSize(); ++i) {
+			if (conditionEnd(i, InternalGet(i))) {
+				return error_code;
+			}
+			error_code &= callback(i, InternalGet(i));
+		}
+		return error_code;
+	}
+
 #endif
 
 	template<typename T>

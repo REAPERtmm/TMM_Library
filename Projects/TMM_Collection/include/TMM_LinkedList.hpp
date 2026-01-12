@@ -90,6 +90,25 @@ namespace TMM
 	}
 
 #ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
+	template<typename T>
+	inline bool LinkedList<T>::Execute(const TMM::Callable<bool, T*, T&, T*>& callback)
+	{
+		if (InternalGetFirst() == nullptr) return true;
+		bool error_code = true;
+		Node<T>* pNode = InternalGetFirst();
+		uint64_t i = 0;
+		while (pNode != nullptr)
+		{
+			error_code &= callback(
+				pNode->pPrevious == nullptr ? nullptr : &pNode->pPrevious->Value,
+				pNode->Value,
+				pNode->pNext == nullptr ? nullptr : &pNode->pNext->Value
+			);
+			pNode = pNode->pNext;
+			++i;
+		}
+		return error_code;
+	}
 
 	template<typename T>
 	inline bool LinkedList<T>::Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback)
@@ -107,19 +126,149 @@ namespace TMM
 	}
 
 	template<typename T>
-	inline bool LinkedList<T>::Execute(const TMM::Callable<bool, T*, T&, T*>& callback)
-	{
-		if (InternalGetFirst() == nullptr) return true;
+	inline bool LinkedList<T>::ExecuteIf(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
 		bool error_code = true;
 		Node<T>* pNode = InternalGetFirst();
 		uint64_t i = 0;
 		while (pNode != nullptr)
 		{
-			error_code &= callback(
-				pNode->pPrevious == nullptr ? nullptr : &pNode->pPrevious->Value,
-				pNode->Value,
-				pNode->pNext == nullptr ? nullptr : &pNode->pNext->Value
-			);
+			if (condition(i, pNode->Value)) {
+				error_code &= callback(i, pNode->Value);
+			}
+			pNode = pNode->pNext;
+			++i;
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool LinkedList<T>::ExecuteUntil(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		Node<T>* pNode = InternalGetFirst();
+		uint64_t i = 0;
+		while (pNode != nullptr)
+		{
+			if (condition(i, pNode->Value)) {
+				return error_code;
+			}
+			error_code &= callback(i, pNode->Value);
+			pNode = pNode->pNext;
+			++i;
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool LinkedList<T>::ExecuteUntil(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback,
+		const uint64_t& start
+	) {
+		bool error_code = true;
+		Node<T>* pNode = InternalGetFirst();
+		uint64_t i = 0;
+		while (pNode != nullptr)
+		{
+			if (i == start) break;
+			pNode = pNode->pNext;
+			++i;
+		}
+		while (pNode != nullptr)
+		{
+			if (condition(i, pNode->Value)) {
+				return error_code;
+			}
+			error_code &= callback(i, pNode->Value);
+			pNode = pNode->pNext;
+			++i;
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool LinkedList<T>::ExecuteFrom(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		Node<T>* pNode = InternalGetFirst();
+		uint64_t i = 0;
+		while (pNode != nullptr)
+		{
+			if (condition(i, pNode->Value)) {
+				break;
+			}
+			pNode = pNode->pNext;
+			++i;
+		}
+		while (pNode != nullptr)
+		{
+			error_code &= callback(i, pNode->Value);
+			pNode = pNode->pNext;
+			++i;
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool LinkedList<T>::ExecuteFrom(
+		const TMM::Callable<bool, const uint64_t&, T&>& condition,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback,
+		const uint64_t& end
+	) {
+		bool error_code = true;
+		Node<T>* pNode = InternalGetFirst();
+		uint64_t i = 0;
+		while (pNode != nullptr)
+		{
+			if (condition(i, pNode->Value)) {
+				break;
+			}
+			pNode = pNode->pNext;
+			++i;
+		}
+		while (pNode != nullptr)
+		{
+			if (end == i) break;
+			error_code &= callback(i, pNode->Value);
+			pNode = pNode->pNext;
+			++i;
+		}
+		return error_code;
+	}
+
+	template<typename T>
+	inline bool LinkedList<T>::ExecuteBetween(
+		const TMM::Callable<bool, const uint64_t&, T&>& conditionStart,
+		const TMM::Callable<bool, const uint64_t&, T&>& conditionEnd,
+		const TMM::Callable<bool, const uint64_t&, T&>& callback
+	) {
+		bool error_code = true;
+		Node<T>* pNode = InternalGetFirst();
+		uint64_t i = 0;
+		while (pNode != nullptr)
+		{
+			if (conditionStart(i, pNode->Value)) {
+				error_code &= callback(i, pNode->Value);
+				pNode = pNode->pNext;
+				++i;
+				break;
+			}
+			pNode = pNode->pNext;
+			++i;
+		}
+		while (pNode != nullptr)
+		{
+			if (conditionEnd(i, pNode->Value)) {
+				break;
+			}
+			error_code &= callback(i, pNode->Value);
 			pNode = pNode->pNext;
 			++i;
 		}

@@ -9,7 +9,10 @@
 
 namespace TMM {
 	template<typename T>
-	class Array : public Collection<uint64_t, T> {
+	class Array : 
+		public _Collection<uint64_t, T, Array<T>>, 
+		public _Iterable<uint64_t, T, Array<T>> 
+	{
 	protected:
 		T* mpData;
 		uint64_t mSize;
@@ -34,20 +37,61 @@ namespace TMM {
 	public:
 
 #ifdef TMM_COLLECTION_FUNCTIONAL_ENABLE
-		// Return if all of the callbacks succeded. 
-		virtual bool Execute(const TMM::Callable<bool, const uint64_t&, T&>& callback) override final;
+		// Return if all of the <callback> succeded. 
+		virtual bool Execute(
+			const TMM::Callable<bool, const uint64_t&, T&>& callback
+		) override;
+
+		// Execute <callback> on every elements IF <condition> returned true (and Return if all of the <callback> succeded.)
+		virtual bool ExecuteIf(
+			const TMM::Callable<bool, const uint64_t&, T&>& condition,
+			const TMM::Callable<bool, const uint64_t&, T&>& callback
+		)  override;
+
+		// Execute <callback> on every elements UNTIL the <condition> is met (excluded) or we reached the end (and Return if all of the <callback> succeded.)
+		virtual bool ExecuteUntil(
+			const TMM::Callable<bool, const uint64_t&, T&>& condition,
+			const TMM::Callable<bool, const uint64_t&, T&>& callback
+		)  override;
+
+		// Execute <callback> on every elements from <start> UNTIL the <condition> is met (excluded) or we reached the end (and Return if all of the <callback> succeded.)
+		virtual bool ExecuteUntil(
+			const TMM::Callable<bool, const uint64_t&, T&>& condition,
+			const TMM::Callable<bool, const uint64_t&, T&>& callback,
+			const uint64_t& start
+		)  override;
+
+		// Execute <callback> on every elements FROM when the <condition> is met (included) to the end  or none if not reached (and Return if all of the <callback> succeded.)
+		virtual bool ExecuteFrom(
+			const TMM::Callable<bool, const uint64_t&, T&>& condition,
+			const TMM::Callable<bool, const uint64_t&, T&>& callback
+		)  override;
+
+		// Execute <callback> on every elements FROM when the <condition> is met (included) to the <end> or none if not reached (and Return if all of the <callback> succeded.)
+		virtual bool ExecuteFrom(
+			const TMM::Callable<bool, const uint64_t&, T&>& condition,
+			const TMM::Callable<bool, const uint64_t&, T&>& callback,
+			const uint64_t& end
+		)  override;
+
+		// Execute <callback> on every elements FROM when the <conditionStart> is met to when the <conditionEnd> is met (and Return if all of the <callback> succeded.)
+		virtual bool ExecuteBetween(
+			const TMM::Callable<bool, const uint64_t&, T&>& conditionStart,
+			const TMM::Callable<bool, const uint64_t&, T&>& conditionEnd,
+			const TMM::Callable<bool, const uint64_t&, T&>& callback
+		)  override;
 #endif
 
 		// Return the amount of different KEYS
 		virtual uint64_t Size() const override final;
 
-		// Return the CONTENT associated with a KEY
+		// Return the T associated with a uint64_t
 		virtual T& operator[](const uint64_t& key);
 
-		// Return the CONTENT associated with a KEY
+		// Return the T associated with a uint64_t
 		virtual const T& at(const uint64_t& key) const override final;
 
-		// Try to access the CONTENT associated with a KEY and return if it succeded
+		// Try to access the T associated with a uint64_t and return if it succeded
 		virtual bool TryGet(const uint64_t& key, T* pDest) override final;
 
 		virtual void Add(const T& value);

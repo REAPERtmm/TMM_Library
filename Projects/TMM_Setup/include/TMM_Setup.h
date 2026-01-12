@@ -19,6 +19,10 @@
 #define ALIGN(size) __attribute__((aligned(size)))
 #endif
 
+// Notation Defines
+
+#define PURE = 0
+
 // Compute Manip
 
 #define TMM_MAX(a, b) ((a) < (b) ? (b) : (a))
@@ -43,6 +47,11 @@
 #include <stdint.h>
 
 namespace TMM {
+
+	using ERROR_CODE = int;
+
+#define TMM_FAILED(code) (code) != 0
+#define TMM_FAILED_WITH(code, err) (code) & (err) != 0
 
     template<typename A, typename B>
     struct is_same {
