@@ -50,6 +50,16 @@ namespace TMM {
 
 	using ERROR_CODE = int;
 
+	using Second_f = float;
+	using Second_u = unsigned int;
+
+	using MilliSecond_f = float;
+	using MilliSecond_u = unsigned int;
+
+	using MicroSecond_u = unsigned int;
+	
+	using NanoSecond_u = unsigned int;
+
 #define TMM_FAILED(code) (code) != 0
 #define TMM_FAILED_WITH(code, err) (code) & (err) != 0
 

@@ -131,7 +131,7 @@ namespace TMM {
 		static __forceinline __m128 _normalizeVec(__m128 v) {
 			return _mm_mul_ps(
 				v,
-				_mm_rsqrt14_ps(
+				_mm_rsqrt_ps(
 					_dotVec(
 						_mm_mul_ps(v, v)
 					)

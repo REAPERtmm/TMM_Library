@@ -1,16 +1,10 @@
 #include <TMM_Debugger.h>
 #include <TMM_WAVParser.h>
 
-#pragma comment(lib, "Winmm.lib")
+#include <vector>
+#include <cmath>
 
-struct A
-{
-	int v = 5;
-	bool f(const uint64_t& index, int& value) {
-		value = value + v;
-		return true;
-	}
-};
+#pragma comment(lib, "Winmm.lib")
 
 int main(int argc, char* argv[]) 
 {
@@ -31,12 +25,24 @@ int main(int argc, char* argv[])
 	DBG_INIT(flags, outputs, true);
 #endif // !NDEBUG
 
+	const char* WAV_FILE = "res/Haydn_94_Andante.wav";
 
-	TMM::Parser_WAV parser;
-	if (TMM_FAILED(parser.Parse("myaudio.wav"))) {
-		LOG_INFO << "Failed to parse file" << ENDL;
+	TMM::Parser_WAV* pParser;
+	TMM::FileContent_WAV* pContent;
+
+	pParser = new TMM::Parser_WAV();
+	TMM::ERROR_CODE code = pParser->Parse(WAV_FILE);
+	if (TMM_FAILED(code))
+	{
+		LOG_INFO << "Failed to Parse " << WAV_FILE << ENDL;
 	}
-	auto pFileContent = parser.GetContentRef();
+	pContent = (TMM::FileContent_WAV*)pParser->GetContentRef();
+	pContent->Cut(0.0f, 10.0f);
+
+	pParser->Serialize("res/cutted.wav", pContent);
+
+	delete pContent;
+	delete pParser;
 
 	DBG_UNINIT();
 

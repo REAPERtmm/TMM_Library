@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.23)
 
 project(TESTS)
 
@@ -61,6 +62,11 @@ target_link_libraries(
         TMM_Query_LIB
         TMM_Threading_LIB
         TMM_Files_LIB
+)
+
+file(
+	COPY ${PROJECT_SOURCE_DIR}/res/ 
+     	DESTINATION ${PROJECT_BINARY_DIR}/res
 )
 
 target_sources(
