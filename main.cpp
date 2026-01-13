@@ -25,24 +25,36 @@ int main(int argc, char* argv[])
 	DBG_INIT(flags, outputs, true);
 #endif // !NDEBUG
 
-	const char* WAV_FILE = "res/Haydn_94_Andante.wav";
+	const char* INPUT_WAV_FILE = "res/sea.wav";
+	const char* OUTPUT_WAV_FILE_CUT = "res/cutted.wav";
 
-	TMM::Parser_WAV* pParser;
+	TMM::FileParser_WAV* pParser;
 	TMM::FileContent_WAV* pContent;
 
-	pParser = new TMM::Parser_WAV();
-	TMM::ERROR_CODE code = pParser->Parse(WAV_FILE);
+	pParser = new TMM::FileParser_WAV();
+	TMM::ERROR_CODE code = pParser->Parse(INPUT_WAV_FILE);
 	if (TMM_FAILED(code))
 	{
-		LOG_INFO << "Failed to Parse " << WAV_FILE << ENDL;
+		LOG_ERROR << "Failed to Parse " << INPUT_WAV_FILE << ENDL;
 	}
-	pContent = (TMM::FileContent_WAV*)pParser->GetContentRef();
-	pContent->Cut(0.0f, 10.0f);
 
-	pParser->Serialize("res/cutted.wav", pContent);
+	pContent = (TMM::FileContent_WAV*)pParser->GetContentRef();
+	auto pCutted = pContent->CutRemove(0.0f, 10.0f);
+	pCutted->Amplify<short, 2.0f>();
+
+	code = pParser->Serialize(OUTPUT_WAV_FILE_CUT, pCutted);
+	if (TMM_FAILED_WITH(code, TMM::PARSING::ERROR_OPEN))
+	{
+		LOG_ERROR << "Failed to open " << OUTPUT_WAV_FILE_CUT << ENDL;
+	}
+	else if (TMM_FAILED_WITH(code, TMM::PARSING::ERROR_WRITE))
+	{
+		LOG_ERROR << "Failed to write " << OUTPUT_WAV_FILE_CUT << ENDL;
+	}
 
 	delete pContent;
 	delete pParser;
+	delete pCutted;
 
 	DBG_UNINIT();
 

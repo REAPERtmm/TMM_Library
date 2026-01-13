@@ -35,8 +35,8 @@ namespace TMM
 			unsigned int duration_s;
 		};
 		unsigned short sampleByteSize	= 16;
-		unsigned short channelCount	= 1;
-		unsigned int SampleRate		= STANDARD_SAMPLE_RATE_44100;
+		unsigned short channelCount		= 1;
+		unsigned int SampleRate			= STANDARD_SAMPLE_RATE_44100;
 
 		WAV_TYPE_FORMAT format = WAV_TYPE_FORMAT::PCM_INTEGER;
 
@@ -44,21 +44,21 @@ namespace TMM
 
 	class FileContent_WAV : public FileContent
 	{
-		friend class Parser_WAV;
+		friend class FileParser_WAV;
 
 		struct HEADER_WAV
 		{
-			unsigned int	FileTypeBlocID	= 0;
-			unsigned int	FileSize		= 0;
-			unsigned int	FileFormatID	= 0;
-			unsigned int	FormatBlocID	= 0;
-			unsigned int	BlocSize		= 0;
-			unsigned short	AudioFormat		= 0;
-			unsigned short	NbrChannels		= 0;
-			unsigned int	SampleRate		= 0;
-			unsigned int	BytePerSec		= 0;
-			unsigned short	BytePerSampleGroup		= 0;
-			unsigned short	BitsPerSample	= 0;
+			unsigned int	FileTypeBlocID		= 0;
+			unsigned int	FileSize			= 0;
+			unsigned int	FileFormatID		= 0;
+			unsigned int	FormatBlocID		= 0;
+			unsigned int	BlocSize			= 0;
+			unsigned short	AudioFormat			= 0;
+			unsigned short	NbrChannels			= 0;
+			unsigned int	SampleRate			= 0;
+			unsigned int	BytePerSec			= 0;
+			unsigned short	BytePerSampleGroup	= 0;
+			unsigned short	BitsPerSample		= 0;
 		};
 
 		struct HEADER_BLOC_WAV
@@ -75,12 +75,14 @@ namespace TMM
 		};
 
 		HEADER_WAV	mHeader				{};
-		BLOC_WAV*	mpDataBloc			{};
 		std::vector<BLOC_WAV> mBloc		{};
+		BLOC_WAV*	mpDataBloc			= nullptr;
 		bool		mOwnDataBloc		= false;
 
 		FileContent_WAV_DESCRIPTOR GetDescriptor();
 		void CopySampleGroupTo(char* pDest, char* pSampleGroup);
+
+		static FileContent_WAV* InternalCreate(FileContent_WAV_DESCRIPTOR& descriptor, void* pData, bool is_owner);
 
 	public:
 		virtual ~FileContent_WAV();
@@ -96,28 +98,110 @@ namespace TMM
 		unsigned int GetBytePerSeconds()			const;
 		WAV_TYPE_FORMAT GetTypeFormat()				const;
 		unsigned int GetTotalSampleCount()			const;
+		Second_f GetDuration()						const;
 		void* At(unsigned int i);
 
 		// Creation
 		static FileContent_WAV* Create(FileContent_WAV_DESCRIPTOR& descriptor, void* pData);
 		static FileContent_WAV* CreateEmpty(FileContent_WAV_DESCRIPTOR& descriptor);
 
-		// Transformation
-		FileContent_WAV* Cut(Second_f start, Second_f end);
+		// Transformation - Create
+		FileContent_WAV* CutRemove(Second_f start, Second_f end);
+		FileContent_WAV* CutKeep(Second_f start, Second_f end);
+		FileContent_WAV* Add(Second_f t, void* pData, uint64_t size);
+
+		// Transformation - Edit
+		template<typename T>
+		void ChangeSignal(T(*transformation)(const T*), Second_f start = 0, Second_f end = -1);
+
+		template<typename T>
+		void ChangeSignal(T(*transformation)(Second_f, const T*), Second_f start = 0, Second_f end = -1);
+		template<typename T>
+		void ChangeSignal(T(*transformation)(Second_f, const T*, FileContent_WAV*), Second_f start = 0, Second_f end = -1);
+
+		template<typename T>
+		void ChangeSignal(T(*transformation)(unsigned int, const T*), Second_f start = 0, Second_f end = -1);
+		template<typename T>
+		void ChangeSignal(T(*transformation)(unsigned int, const T*, FileContent_WAV*), Second_f start = 0, Second_f end = -1);
+
+
+		template<typename T, float FACTOR>
+		void Amplify();
 	};
 
-	class Parser_WAV : public FileParser
+	class FileParser_WAV : public FileParser
 	{
 		friend class FileContent_WAV;
 		FileContent_WAV* mpFileContent;
 
 	public:
-		Parser_WAV();
-		virtual ~Parser_WAV();
+		FileParser_WAV();
+		virtual ~FileParser_WAV();
 
 		virtual ERROR_CODE Parse(const char* path)									override;
 		virtual ERROR_CODE Serialize(const char* path, FileContent* pFileContent)	override;
 		virtual FileContent* GetContentRef()										override;
 	};
+
+	template<typename T>
+	inline void FileContent_WAV::ChangeSignal(T(*transformation)(const T*), Second_f start, Second_f end)
+	{
+		unsigned int i_start = start * mHeader.SampleRate;
+		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
+		for (unsigned int i = i_start; i < i_end; ++i)
+		{
+			*((T*)At(i)) = transformation(At(i));
+		}
+	}
+
+	template<typename T>
+	inline void FileContent_WAV::ChangeSignal(T(*transformation)(Second_f, const T*), Second_f start, Second_f end)
+	{
+		unsigned int i_start = start * mHeader.SampleRate;
+		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
+		for (unsigned int i = i_start; i < i_end; ++i)
+		{
+			*((T*)At(i)) = transformation(i * mHeader.SampleRate, At(i));
+		}
+	}
+
+	template<typename T>
+	inline void FileContent_WAV::ChangeSignal(T(*transformation)(Second_f, const T*, FileContent_WAV*), Second_f start, Second_f end)
+	{
+		unsigned int i_start = start * mHeader.SampleRate;
+		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
+		for (unsigned int i = i_start; i < i_end; ++i)
+		{
+			*((T*)At(i)) = transformation(i * mHeader.SampleRate, At(i), this);
+		}
+	}
+
+	template<typename T>
+	inline void FileContent_WAV::ChangeSignal(T(*transformation)(unsigned int, const T*), Second_f start, Second_f end)
+	{
+		unsigned int i_start = start * mHeader.SampleRate;
+		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
+		for (unsigned int i = i_start; i < i_end; ++i)
+		{
+			*((T*)At(i)) = transformation(i, At(i));
+		}
+	}
+
+	template<typename T>
+	inline void FileContent_WAV::ChangeSignal(T(*transformation)(unsigned int, const T*, FileContent_WAV*), Second_f start, Second_f end)
+	{
+		unsigned int i_start = start * mHeader.SampleRate;
+		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
+		for (unsigned int i = i_start; i < i_end; ++i)
+		{
+			*((T*)At(i)) = transformation(i, At(i), this);
+		}
+	}
+
+	template<typename T, float FACTOR>
+	inline void FileContent_WAV::Amplify()
+	{
+		ChangeSignal(+[](Second_f t, const T* pValue) -> T { return FACTOR * *pValue; });
+	}
 
 }

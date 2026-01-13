@@ -82,6 +82,7 @@ namespace TMM {
 		TMM::OFile* mpOutputFile;
 #endif
 
+		bool mIsRegisteringError = false;
 		ERROR_DESCRIPTOR* mErrors;
 		uint8_t mErrorIndex = 0;
 

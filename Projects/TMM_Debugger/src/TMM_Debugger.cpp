@@ -66,6 +66,8 @@ namespace TMM {
 	Debugger* Debugger::Get(DEBUGGER_FLAGS flag)
 	{
 		Debugger* pDebugger = InternalGet(flag);
+		pDebugger->mIsRegisteringError = false;
+		pDebugger->mErrors[pDebugger->mErrorIndex].ErrorMsg = "";
 		if (pDebugger->mThreadSafetyEnabled)
 			EnterCriticalSection(&pDebugger->mCS);
 		return pDebugger;
@@ -201,9 +203,10 @@ namespace TMM {
 	{
 		char txt[2]{ other.Symbol, '\0' };
 		OutputString(txt, 1);
-		if (mCurrentValid && mCurrentFlag.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
+		if (mIsRegisteringError && mCurrentValid && mCurrentFlag.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
 			++mErrorIndex;
 			if (mErrorIndex >= 32) mErrorIndex = 31;
+			mIsRegisteringError = false;
 		}
 		if (mThreadSafetyEnabled)
 			LeaveCriticalSection(&mCS);
@@ -213,6 +216,7 @@ namespace TMM {
 	Debugger& Debugger::RegisterError(uint64_t line, const char* functionName, const char* fileName)
 	{
 		if (mCurrentValid && mDescriptor.Flags.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
+			mIsRegisteringError = true;
 			mErrors[mErrorIndex].Line = line;
 			mErrors[mErrorIndex].FunctionName = functionName;
 			mErrors[mErrorIndex].FileName = fileName;
