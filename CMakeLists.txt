@@ -73,4 +73,4 @@ target_sources(
     TestProject
     PRIVATE
         main.cpp
-)
+ "Projects/TMM_Audio/src/TMM_Audio.cpp" "Projects/TMM_Audio/include/TMM_Audio.h" "Projects/TMM_Files/include/TMM_AudioData.h" "Projects/TMM_Files/src/TMM_AudioData.cpp")

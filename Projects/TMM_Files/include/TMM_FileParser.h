@@ -43,6 +43,22 @@ namespace TMM
 		virtual FileContent* GetContentRef()										PURE;
 	};
 
+	__interface AudioFileContent : public FileContent
+	{
+		virtual unsigned short GetChannelCount() const			PURE;
+		virtual unsigned short GetSampleByteSize() const		PURE;
+		virtual unsigned short GetSampleGroupByteSize()	const	PURE;
+		virtual unsigned int GetBytePerSeconds() const			PURE;
+		virtual unsigned int GetTotalSampleCount() const		PURE;
+		virtual unsigned int GetSampleRate() const				PURE;
+		virtual Second_f GetDuration() const					PURE;
+		virtual BASE_TYPE GetEncodedType() const				PURE;
+	};
+
+	__interface AudioFileParser : public FileParser
+	{
+
+	};
 
 }
 

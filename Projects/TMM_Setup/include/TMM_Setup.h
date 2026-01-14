@@ -31,6 +31,7 @@
 #define TMM_CLAMP01(v) TMM_CLAMP(v, 0, 1)
 #define TMM_SWAP(a, b) auto temp = (a); (a) = (b); (b) = temp;
 #define TMM_SWAP_XOR(a, b) (a) = (a) ^ (b); (b) = (a) ^ (b); (a) = (a) ^ (b);
+#define TMM_LERP(a, b, t) (a) + (t) * ((b) - (a))
 
 // Bit Manip
 
@@ -47,6 +48,26 @@
 #include <stdint.h>
 
 namespace TMM {
+	
+	enum class BASE_TYPE : uint32_t
+	{
+		UNKNOWN,
+
+		BOOL,
+
+		FLOAT,
+		DOUBLE,
+		
+		UINT8,
+		UINT16,
+		UINT32,
+		UINT64,
+		
+		INT8,
+		INT16,
+		INT32,
+		INT64
+	};
 
 	using ERROR_CODE = int;
 

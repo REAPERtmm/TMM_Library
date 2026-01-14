@@ -1,8 +1,4 @@
 #include "TMM_Thread.h"
-#include "TMM_Thread.h"
-#include "TMM_Thread.h"
-#include "TMM_Thread.h"
-#include "TMM_Thread.h"
 
 namespace TMM 
 {

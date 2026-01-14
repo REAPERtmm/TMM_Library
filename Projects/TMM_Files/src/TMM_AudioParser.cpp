@@ -1,4 +1,4 @@
-#include "TMM_WAVParser.h"
+#include "TMM_AudioParser.h"
 
 namespace TMM
 {
@@ -176,6 +176,11 @@ namespace TMM
         return mHeader.BytePerSec;
     }
 
+    unsigned int FileContent_WAV::GetSampleRate() const
+    {
+        return mHeader.SampleRate;
+    }
+
     TMM::WAV_TYPE_FORMAT TMM::FileContent_WAV::GetTypeFormat() const
     {
         return (mHeader.AudioFormat == 3 ? WAV_TYPE_FORMAT::IEEE_FLOATING : WAV_TYPE_FORMAT::PCM_INTEGER);
@@ -188,7 +193,27 @@ namespace TMM
 
     TMM::Second_f TMM::FileContent_WAV::GetDuration() const
     {
-        return Second_f();
+        return GetTotalSampleCount() / mHeader.SampleRate;
+    }
+
+    BASE_TYPE FileContent_WAV::GetEncodedType() const
+    {
+
+        if (mHeader.AudioFormat == 1) {
+            switch (mHeader.BitsPerSample)
+            {
+            case 8 : return BASE_TYPE::INT8;
+            case 16: return BASE_TYPE::INT16;
+            case 24: return BASE_TYPE::INT32;
+            case 32: return BASE_TYPE::INT32;
+            case 64: return BASE_TYPE::INT64;
+            default: return BASE_TYPE::UNKNOWN;
+            }
+        }
+        else if (mHeader.BitsPerSample == 32) return BASE_TYPE::FLOAT;
+        else if (mHeader.BitsPerSample == 64) return BASE_TYPE::DOUBLE;
+
+        return BASE_TYPE::UNKNOWN;
     }
 
     void* TMM::FileContent_WAV::At(unsigned int i)
@@ -218,7 +243,9 @@ namespace TMM
         FileContent_WAV_DESCRIPTOR desc = GetDescriptor();
 
         unsigned int SizeToStart = start * mHeader.SampleRate * mHeader.BytePerSampleGroup;
+        SizeToStart -= SizeToStart % GetSampleGroupByteSize();
         unsigned int SizeToEnd = end * mHeader.SampleRate * mHeader.BytePerSampleGroup;
+        SizeToEnd -= SizeToEnd % GetSampleGroupByteSize();
         unsigned int SampleGroupCountCutted = (SizeToEnd - SizeToStart) / mHeader.BytePerSampleGroup;
         desc.sampleGroupCount -= SampleGroupCountCutted;
 
@@ -243,7 +270,9 @@ namespace TMM
         FileContent_WAV_DESCRIPTOR desc = GetDescriptor();
 
         unsigned int SizeToStart = start * mHeader.SampleRate * mHeader.BytePerSampleGroup;
+        SizeToStart -= SizeToStart % GetSampleGroupByteSize();
         unsigned int SizeToEnd = end * mHeader.SampleRate * mHeader.BytePerSampleGroup;
+        SizeToEnd -= SizeToEnd % GetSampleGroupByteSize();
         unsigned int SampleGroupCountCuttedSize = SizeToEnd - SizeToStart;
         unsigned int SampleGroupCountCutted = SampleGroupCountCuttedSize / mHeader.BytePerSampleGroup;
         desc.sampleGroupCount -= SampleGroupCountCutted;
@@ -264,6 +293,7 @@ namespace TMM
         FileContent_WAV_DESCRIPTOR desc = GetDescriptor();
 
         unsigned int SizeToTime = t * mHeader.SampleRate * mHeader.BytePerSampleGroup;
+        SizeToTime -= SizeToTime % GetSampleGroupByteSize();
         unsigned int SampleGroupCountCutted = SizeToTime / mHeader.BytePerSampleGroup;
         desc.sampleGroupCount += SampleGroupCountCutted;
 
@@ -286,6 +316,33 @@ namespace TMM
         );
 
         return pOut;
+    }
+
+    void FileContent_WAV::Reverse(Second_f start, Second_f end)
+    {
+        end = (end > start ? end : GetDuration());
+
+        unsigned int SizeToStart = start * mHeader.SampleRate * mHeader.BytePerSampleGroup;
+        SizeToStart -= SizeToStart % GetSampleGroupByteSize();
+        unsigned int SizeToEnd = end * mHeader.SampleRate * GetSampleGroupByteSize();
+        SizeToEnd -= SizeToEnd % GetSampleGroupByteSize();
+
+        unsigned int SampleGroupCountCutted = (SizeToEnd - SizeToStart) / GetSampleGroupByteSize();
+
+        char* buffer_temp = new char[GetSampleGroupByteSize()];
+
+        for (unsigned int i = 0; i < SampleGroupCountCutted * 0.5f; ++i)
+        {
+            unsigned int offset = i * GetSampleGroupByteSize();
+            char* pLeft     = GetContent() + SizeToStart + offset;
+            char* pRight    = GetContent() + SizeToEnd - offset - GetSampleGroupByteSize();
+
+            CopySampleGroupTo(buffer_temp, pLeft);
+            CopySampleGroupTo(pLeft, pRight);
+            CopySampleGroupTo(pRight, buffer_temp);
+        }
+
+        delete[] buffer_temp;
     }
 
 }

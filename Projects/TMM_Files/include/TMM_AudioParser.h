@@ -42,7 +42,7 @@ namespace TMM
 
 	};
 
-	class FileContent_WAV : public FileContent
+	class FileContent_WAV : public AudioFileContent
 	{
 		friend class FileParser_WAV;
 
@@ -88,17 +88,19 @@ namespace TMM
 		virtual ~FileContent_WAV();
 
 		// Accesstion
-		virtual PARSING::FileFormat GetFormat()		const override;
-		virtual FileParser* GetParser()				const override;
-		virtual unsigned int GetContentSize()		const override;
-		virtual char* GetContent()					override;
-		unsigned short GetChannelCount()			const;
-		unsigned short GetSampleByteSize()			const;
-		unsigned short GetSampleGroupByteSize()		const;
-		unsigned int GetBytePerSeconds()			const;
-		WAV_TYPE_FORMAT GetTypeFormat()				const;
-		unsigned int GetTotalSampleCount()			const;
-		Second_f GetDuration()						const;
+		virtual PARSING::FileFormat GetFormat()	const			override;
+		virtual FileParser* GetParser()	const					override;
+		virtual unsigned int GetContentSize() const				override;
+		virtual char* GetContent()								override;
+		virtual unsigned short GetChannelCount() const			override;
+		virtual unsigned short GetSampleByteSize() const		override;
+		virtual unsigned short GetSampleGroupByteSize() const	override;
+		virtual unsigned int GetBytePerSeconds() const			override;
+		virtual unsigned int GetSampleRate() const				override;
+		virtual unsigned int GetTotalSampleCount() const		override;
+		virtual Second_f GetDuration() const					override;
+		virtual BASE_TYPE GetEncodedType() const				override;
+		WAV_TYPE_FORMAT GetTypeFormat()	const;
 		void* At(unsigned int i);
 
 		// Creation
@@ -111,6 +113,8 @@ namespace TMM
 		FileContent_WAV* Add(Second_f t, void* pData, uint64_t size);
 
 		// Transformation - Edit
+		void Reverse(Second_f start = 0, Second_f end = -1);
+
 		template<typename T>
 		void ChangeSignal(T(*transformation)(const T*), Second_f start = 0, Second_f end = -1);
 
@@ -129,7 +133,7 @@ namespace TMM
 		void Amplify();
 	};
 
-	class FileParser_WAV : public FileParser
+	class FileParser_WAV : public AudioFileParser
 	{
 		friend class FileContent_WAV;
 		FileContent_WAV* mpFileContent;
