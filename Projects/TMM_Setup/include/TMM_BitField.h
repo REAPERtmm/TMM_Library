@@ -10,12 +10,12 @@ namespace TMM
 	{
 		unsigned char mBytes[SIZE_8] = {};
 
-		// for i e [0, 8] ex. i = 4 => 0b00001000
+		// for i e [0, 7] ex. i = 3 => 0b00001000
 		constexpr unsigned char Mask(unsigned short i_bit) {
 			return 1 << i_bit;
 		}
 
-		// for i e [0, 8] ex. i = 4 => 0b11110111
+		// for i e [0, 7] ex. i = 3 => 0b11110111
 		constexpr unsigned char Mask_reversed(unsigned short i_bit) {
 			return ~(1 << i_bit);
 		}
@@ -80,6 +80,30 @@ namespace TMM
 		constexpr void SetFalse(unsigned char i_bit, unsigned char i_byte = 0)
 		{
 			mBytes[i_byte] &= Mask_reversed(i_bit);
+		}
+
+		constexpr void operator |= (unsigned char mask)
+		{
+			static_assert(SIZE_8 == 1, "Cant use operator |= on BitField with more than 8bits");
+			mBytes[0] |= mask;
+		}
+
+		constexpr void operator &= (unsigned char mask)
+		{
+			static_assert(SIZE_8 == 1, "Cant use operator &= BitField with more than 8bits");
+			mBytes[0] &= mask;
+		}
+
+		constexpr void operator ^= (unsigned char mask)
+		{
+			static_assert(SIZE_8 == 1, "Cant use operator ^= BitField with more than 8bits");
+			mBytes[0] ^= mask;
+		}
+
+		constexpr void operator ~()
+		{
+			static_assert(SIZE_8 == 1, "Cant use operator ~ on BitField with more than 8bits");
+			mBytes[0] = ~mBytes[0];
 		}
 	};
 

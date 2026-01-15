@@ -23,6 +23,16 @@ add_library( TMM_Query_LIB ${TMM_Query_SRC} ${TMM_Query_HEADERS} )
 target_compile_features( TMM_Query_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Query_LIB PUBLIC include/ )
 
+# REQUIRED
+# - TMM_Setup
+# - TMM_Functional
+# - TMM_Collection
+if(NOT TARGET TMM_Setup_LIB)
+	add_subdirectory(
+		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup
+		${CMAKE_CURRENT_BINARY_DIR}/TMM_Setup_build
+	)
+endif()
 if(NOT TARGET TMM_Functional_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Functional
@@ -33,12 +43,6 @@ if(NOT TARGET TMM_Collection_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Collection
 		${CMAKE_CURRENT_BINARY_DIR}/TMM_Collection_build
-	)
-endif()
-if(NOT TARGET TMM_Setup_LIB)
-	add_subdirectory(
-		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup
-		${CMAKE_CURRENT_BINARY_DIR}/TMM_Setup_build
 	)
 endif()
 

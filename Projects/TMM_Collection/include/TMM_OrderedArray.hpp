@@ -5,15 +5,29 @@ namespace TMM {
 	template<typename T>
 	inline void ArrayOrdered<T>::Remove(const T& value)
 	{
-		T* pElt = this->InternalGetStartPtr();
-		T* pLast = this->InternalGetStartPtr() + this->InternalGetSize();
-		for (;pElt != pLast; ++pElt) {
-			if (*pElt == value) break;
+		if constexpr (HasOperatorEq<T>)
+		{
+			T* pElt = this->InternalGetStartPtr();
+			T* pLast = this->InternalGetStartPtr() + this->InternalGetSize();
+			for (;pElt != pLast; ++pElt) {
+				if (*pElt == value) break;
+			}
+			for (;pElt != pLast; ++pElt) {
+				*pElt = *(pElt + 1);
+			}
+			this->InternalDecrementSize();
 		}
-		for (;pElt != pLast; ++pElt) {
-			*pElt = *(pElt + 1);
+		else {
+			T* pElt = this->InternalGetStartPtr();
+			T* pLast = this->InternalGetStartPtr() + this->InternalGetSize();
+			for (;pElt != pLast; ++pElt) {
+				if (pElt == &value) break;
+			}
+			for (;pElt != pLast; ++pElt) {
+				*pElt = *(pElt + 1);
+			}
+			this->InternalDecrementSize();
 		}
-		this->InternalDecrementSize();
 	}
 
 	template<typename T>

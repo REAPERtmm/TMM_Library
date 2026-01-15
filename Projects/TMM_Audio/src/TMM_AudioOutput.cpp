@@ -30,6 +30,7 @@ namespace TMM
 		if (FAILED(hr)) return hr;
 
 		mIsInit = true;
+		return 0;
 	}
 
 	ERROR_CODE AudioOutput::CreateAudio(AudioData* pOut)
@@ -44,6 +45,7 @@ namespace TMM
 
 		pOut->LoadFromFile(file);
 		pOut->CreateSource(this);
+		return 0;
 	}
 
 	ERROR_CODE AudioOutput::CreateAudioFromContent(AudioFileContent* pContent, AudioData* pOut)
@@ -52,6 +54,7 @@ namespace TMM
 
 		pOut->LoadFromContent(pContent);
 		pOut->CreateSource(this);
+		return 0;
 	}
 
 	void AudioOutput::Play(AudioData& data)

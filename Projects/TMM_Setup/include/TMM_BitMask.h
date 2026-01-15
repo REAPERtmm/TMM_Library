@@ -19,117 +19,115 @@ namespace TMM
 		BitMask(uint64_t value) : mValue(value) {}
 		BitMask(Enum value) : mValue((uint64_t)value) {}
 
-		BitMask operator | (const BitMask& other) const {
+		constexpr BitMask operator | (const BitMask& other) const {
 			return { mValue | other.mValue };
 		}
 
-		BitMask operator | (const Enum& other) const {
+		constexpr BitMask operator | (const Enum& other) const {
 			return { mValue | static_cast<uint64_t>(other) };
 		}
 
-		BitMask& operator |= (const BitMask& other) {
+		constexpr BitMask& operator |= (const BitMask& other) {
 			mValue |= other.mValue;
 			return *this;
 		}
 
-		BitMask& operator |= (const Enum& other) {
+		constexpr BitMask& operator |= (const Enum& other) {
 			mValue |= static_cast<uint64_t>(other);
 			return *this;
 		}
 
-		BitMask operator & (const BitMask& other) const {
+		constexpr BitMask operator & (const BitMask& other) const {
 			return { mValue & other.mValue };
 		}
 
-		BitMask operator & (const Enum& other) const {
+		constexpr BitMask operator & (const Enum& other) const {
 			return { mValue & static_cast<uint64_t>(other) };
 		}
 
-		BitMask& operator &= (const BitMask& other) {
+		constexpr BitMask& operator &= (const BitMask& other) {
 			mValue &= other.mValue;
 			return *this;
 		}
 
-		BitMask& operator &= (const Enum& other) {
+		constexpr BitMask& operator &= (const Enum& other) {
 			mValue &= static_cast<uint64_t>(other);
 			return *this;
 		}
 
-		BitMask operator ^ (const BitMask& other) const {
+		constexpr BitMask operator ^ (const BitMask& other) const {
 			return { mValue ^ other.mValue };
 		}
 
-		BitMask operator ^ (const Enum& other) const {
+		constexpr BitMask operator ^ (const Enum& other) const {
 			return { mValue ^ static_cast<uint64_t>(other) };
 		}
 
-		BitMask& operator ^= (const BitMask& other) {
+		constexpr BitMask& operator ^= (const BitMask& other) {
 			mValue ^= other.mValue;
 			return *this;
 		}
 
-		BitMask& operator ^= (const Enum& other) {
+		constexpr BitMask& operator ^= (const Enum& other) {
 			mValue ^= static_cast<uint64_t>(other);
 			return *this;
 		}
 
-		bool operator == (const BitMask& other) const {
+		constexpr bool operator == (const BitMask& other) const {
 			return mValue == other.mValue;
 		}
 
-		bool operator == (const Enum& other) const {
+		constexpr bool operator == (const Enum& other) const {
 			return mValue == static_cast<uint64_t>(other);
 		}
 
-		bool operator != (const BitMask& other) const {
+		constexpr bool operator != (const BitMask& other) const {
 			return mValue != other.mValue;
 		}
 
-		bool operator != (const Enum& other) const {
+		constexpr bool operator != (const Enum& other) const {
 			return mValue != static_cast<uint64_t>(other);
 		}
 
-		bool operator >= (const BitMask& other) const {
+		constexpr bool operator >= (const BitMask& other) const {
 			return (mValue & other.mValue) == other.mValue; 
 		}
 
-		bool operator >= (const Enum& other) const {
+		constexpr bool operator >= (const Enum& other) const {
 			return (mValue & static_cast<uint64_t>(other)) == static_cast<uint64_t>(other);
 		}
 
-		bool operator <= (const BitMask& other) const {
+		constexpr bool operator <= (const BitMask& other) const {
 			return (mValue & other.mValue) == mValue;
 		}
 
-		bool operator <= (const Enum& other) const {
+		constexpr bool operator <= (const Enum& other) const {
 			return (mValue & static_cast<uint64_t>(other)) == mValue;
 		}
 
-		bool operator > (const BitMask& other) const {
+		constexpr bool operator > (const BitMask& other) const {
 			return operator >= (other) && operator != (other);
 		}
 
-		bool operator > (const Enum& other) const {
+		constexpr bool operator > (const Enum& other) const {
 			return operator >= (other) && operator != (other);
 		}
 
-		bool operator < (const BitMask& other) const {
+		constexpr bool operator < (const BitMask& other) const {
 			return operator <= (other) && operator != (other);
 		}
 
-		bool operator < (const Enum& other) const {
+		constexpr bool operator < (const Enum& other) const {
 			return operator <= (other) && operator != (other);
 		}
 
-		bool Contain(const BitMask& other) const {
+		constexpr bool Contain(const BitMask& other) const {
 			return operator >= (other);
 		}
 
-		bool Contain(const Enum& other) const {
+		constexpr bool Contain(const Enum& other) const {
 			return operator >= (other);
 		}
 	};
 
 }
-
-#include "TMM_Bitmask.hpp"

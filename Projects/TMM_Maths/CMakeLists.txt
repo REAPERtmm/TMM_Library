@@ -23,6 +23,8 @@ add_library( TMM_Maths_LIB ${TMM_Maths_SRC} ${TMM_Maths_HEADERS} )
 target_compile_features( TMM_Maths_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Maths_LIB PUBLIC include/ )
 
+# REQUIRED 
+# - TMM_Setup
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup

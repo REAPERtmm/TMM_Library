@@ -23,6 +23,8 @@ add_library( TMM_Functional_LIB ${TMM_Functional_SRC} ${TMM_Functional_HEADERS} 
 target_compile_features( TMM_Functional_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Functional_LIB PUBLIC include/ )
 
+# REQUIRED
+# - TMM_Setup
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup

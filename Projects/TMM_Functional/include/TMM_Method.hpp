@@ -50,7 +50,7 @@ namespace TMM {
 	template<typename F>
 	inline LambdaMethod<Ret, Args...>::LambdaMethod(F&& f)
 	{
-		using Fun = TMM::decay_t<F>;
+		using Fun = TMM::Decay_t<F>;
 		mpObj = new Fun(TMM::forward<F>(f));
 		mCall = [](void* obj, Args... args) -> Ret {
 			return (*static_cast<Fun*>(obj))(args...);

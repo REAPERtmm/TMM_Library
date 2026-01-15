@@ -24,26 +24,23 @@ target_compile_features( TMM_Debugger_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Debugger_LIB PUBLIC include/ )
 
 # REQUIRED
+# - TMM_Setup
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup
 		${CMAKE_CURRENT_BINARY_DIR}/TMM_Setup_build
 	)
 endif()
-if(NOT TARGET TMM_Structs_LIB)
-	add_subdirectory(
-		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Structs
-		${CMAKE_CURRENT_BINARY_DIR}/TMM_Structs_build
-	)
-endif()
 target_link_libraries(
 	TMM_Debugger_LIB
 	PUBLIC
 		TMM_Setup_LIB
-		TMM_Structs_LIB
 )
 
 # NOT REQUIRED
+# - TMM_Files
+# - TMM_Maths
+# TODO : - TMM_Collection
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Files/CMakeLists.txt")
 	message("INFO / TMM_Debugger_LIB Support TMM_Files_LIB !")
 	if(NOT TARGET TMM_Files_LIB)

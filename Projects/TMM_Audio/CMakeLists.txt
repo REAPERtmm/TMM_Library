@@ -24,6 +24,8 @@ target_compile_features( TMM_Audio_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Audio_LIB PUBLIC include/ )
 
 # REQUIRED
+# - TMM_Setup
+# - TMM_Files
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup

@@ -24,6 +24,7 @@ target_compile_features( TMM_Collection_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Collection_LIB PUBLIC include/ )
 
 # REQUIRED
+# - TMM_Setup
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup
@@ -38,6 +39,7 @@ target_link_libraries(
 )
 
 # NOT REQUIRED
+# - TMM_Functional
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Functional/CMakeLists.txt")
 	message("INFO / TMM_Collection_LIB Support TMM_Functional_LIB !")
 	if(NOT TARGET TMM_Functional_LIB)

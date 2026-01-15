@@ -23,6 +23,9 @@ add_library( TMM_Threading_LIB ${TMM_Threading_SRC} ${TMM_Threading_HEADERS} )
 target_compile_features( TMM_Threading_LIB PUBLIC cxx_std_20 )
 target_include_directories( TMM_Threading_LIB PUBLIC include/ )
 
+# REQUIRED
+# - TMM_Setup
+# - TMM_Functional
 if(NOT TARGET TMM_Setup_LIB)
 	add_subdirectory(
 		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Setup

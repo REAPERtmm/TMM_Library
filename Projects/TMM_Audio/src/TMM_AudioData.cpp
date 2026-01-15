@@ -54,6 +54,7 @@ namespace TMM {
 		mBuffer.Flags = XAUDIO2_END_OF_STREAM;
 
 		mpSource->SubmitSourceBuffer(&mBuffer);
+		return 0;
 	}
 
 }
