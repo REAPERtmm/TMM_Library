@@ -4,6 +4,9 @@
 #include <TMM_Setup.h>
 #include "TMM_FileParser.h"
 
+#include "TMM_IFile.h"
+#include "TMM_OFile.h"
+
 // REQUIRED external include
 #include <stdio.h>
 #include <memory>
@@ -84,7 +87,13 @@ namespace TMM
 
 		static FileContent_WAV* InternalCreate(FileContent_WAV_DESCRIPTOR& descriptor, void* pData, bool is_owner);
 
+		template<typename T_IN, typename T_OUT>
+		static void CopySampleGroupTo(T_OUT* pDest, T_IN* pSrc, unsigned int channel_count, T_OUT(*convert)(T_IN& value));
+
 	public:
+		template<typename T_IN, typename T_OUT>
+		static T_OUT Convert(T_IN& src);
+
 		virtual ~FileContent_WAV();
 
 		// Accesstion
@@ -103,6 +112,10 @@ namespace TMM
 		WAV_TYPE_FORMAT GetTypeFormat()	const;
 		void* At(unsigned int i);
 
+		BLOC_WAV GetBloc(unsigned int i) {
+			return mBloc[i];
+		}
+
 		// Creation
 		static FileContent_WAV* Create(FileContent_WAV_DESCRIPTOR& descriptor, void* pData);
 		static FileContent_WAV* CreateEmpty(FileContent_WAV_DESCRIPTOR& descriptor);
@@ -111,6 +124,9 @@ namespace TMM
 		FileContent_WAV* CutRemove(Second_f start, Second_f end);
 		FileContent_WAV* CutKeep(Second_f start, Second_f end);
 		FileContent_WAV* Add(Second_f t, void* pData, uint64_t size);
+
+		template<typename T_OUT>
+		FileContent_WAV* Translate();
 
 		// Transformation - Edit
 		void Reverse(Second_f start = 0, Second_f end = -1);
@@ -146,66 +162,6 @@ namespace TMM
 		virtual ERROR_CODE Serialize(const char* path, FileContent* pFileContent)	override;
 		virtual FileContent* GetContentRef()										override;
 	};
-
-	template<typename T>
-	inline void FileContent_WAV::ChangeSignal(T(*transformation)(const T*), Second_f start, Second_f end)
-	{
-		unsigned int i_start = start * mHeader.SampleRate;
-		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
-		for (unsigned int i = i_start; i < i_end; ++i)
-		{
-			*((T*)At(i)) = transformation(At(i));
-		}
-	}
-
-	template<typename T>
-	inline void FileContent_WAV::ChangeSignal(T(*transformation)(Second_f, const T*), Second_f start, Second_f end)
-	{
-		unsigned int i_start = start * mHeader.SampleRate;
-		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
-		for (unsigned int i = i_start; i < i_end; ++i)
-		{
-			*((T*)At(i)) = transformation(i * mHeader.SampleRate, At(i));
-		}
-	}
-
-	template<typename T>
-	inline void FileContent_WAV::ChangeSignal(T(*transformation)(Second_f, const T*, FileContent_WAV*), Second_f start, Second_f end)
-	{
-		unsigned int i_start = start * mHeader.SampleRate;
-		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
-		for (unsigned int i = i_start; i < i_end; ++i)
-		{
-			*((T*)At(i)) = transformation(i * mHeader.SampleRate, At(i), this);
-		}
-	}
-
-	template<typename T>
-	inline void FileContent_WAV::ChangeSignal(T(*transformation)(unsigned int, const T*), Second_f start, Second_f end)
-	{
-		unsigned int i_start = start * mHeader.SampleRate;
-		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
-		for (unsigned int i = i_start; i < i_end; ++i)
-		{
-			*((T*)At(i)) = transformation(i, At(i));
-		}
-	}
-
-	template<typename T>
-	inline void FileContent_WAV::ChangeSignal(T(*transformation)(unsigned int, const T*, FileContent_WAV*), Second_f start, Second_f end)
-	{
-		unsigned int i_start = start * mHeader.SampleRate;
-		unsigned int i_end = (end > start ? end * mHeader.SampleRate : GetTotalSampleCount());
-		for (unsigned int i = i_start; i < i_end; ++i)
-		{
-			*((T*)At(i)) = transformation(i, At(i), this);
-		}
-	}
-
-	template<typename T, float FACTOR>
-	inline void FileContent_WAV::Amplify()
-	{
-		ChangeSignal(+[](Second_f t, const T* pValue) -> T { return FACTOR * *pValue; });
-	}
-
 }
+
+#include "TMM_AudioParser.hpp"

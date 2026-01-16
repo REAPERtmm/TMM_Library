@@ -6,7 +6,8 @@
 
 namespace TMM {
 
-	class IFile : public BaseFile {
+	class IFile : public BaseFile {	
+		bool ClearAndOpen() override final { return true; };
 	public:
 		IFile(const char* path);
 		virtual ~IFile() = default;

@@ -103,6 +103,11 @@ namespace TMM
 		return InternalSeekEnd(offset);
 	}
 
+	bool BaseFile::EndOfFile()
+	{
+		return feof(mpFile);
+	}
+
 	bool BaseFile::Open()
 	{
 		if (IsOpened()) return false;

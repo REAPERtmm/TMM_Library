@@ -8,11 +8,12 @@ namespace TMM
 
     TMM::ERROR_CODE TMM::FileParser_WAV::Parse(const char* path)
     {
-        FILE* pFile;
-        if (fopen_s(&pFile, path, "rb")) return PARSING::ERROR_OPEN;
+        TMM::IFile file(path);
+
+        if(file.Open() == false) return PARSING::ERROR_OPEN;
 
         mpFileContent = new FileContent_WAV();
-        if (fread(&mpFileContent->mHeader, sizeof(TMM::FileContent_WAV::HEADER_WAV), 1, pFile) != 1) return PARSING::ERROR_READ;
+        if (file.Read(&mpFileContent->mHeader, sizeof(TMM::FileContent_WAV::HEADER_WAV)) == false)  return PARSING::ERROR_READ;
 
         if (mpFileContent->mHeader.FileTypeBlocID != RIFF_ID) return PARSING::ERROR_WRONG_FORMAT;
         if (mpFileContent->mHeader.FileFormatID != WAVE_ID) return PARSING::ERROR_WRONG_FORMAT;
@@ -22,13 +23,13 @@ namespace TMM
         bool isDataBloc = false;
         FileContent_WAV::BLOC_WAV* pBloc;
         do {
-            fseek(pFile, offset, 0);
 
             mpFileContent->mBloc.push_back({});
             pBloc = &*mpFileContent->mBloc.rbegin();
             pBloc->OffsetInFile = offset;
 
-            if (fread(&pBloc->Header, sizeof(TMM::FileContent_WAV::HEADER_BLOC_WAV), 1, pFile) != 1) return PARSING::ERROR_READ;
+            if (file.ReadAt(&pBloc->Header, sizeof(TMM::FileContent_WAV::HEADER_BLOC_WAV), offset) == false) return PARSING::ERROR_READ;
+            offset += sizeof(TMM::FileContent_WAV::HEADER_BLOC_WAV);
 
             isDataBloc = pBloc->Header.DataBlocID == DATA_ID;
 
@@ -36,32 +37,30 @@ namespace TMM
             {
                 pBloc->pData = new char[pBloc->Header.DataSize];
                 mpFileContent->mOwnDataBloc = true;
-                if (fread(pBloc->pData, pBloc->Header.DataSize, 1, pFile) != 1) return PARSING::ERROR_READ;
+                if (file.ReadAt(pBloc->pData, pBloc->Header.DataSize, offset) == false) return PARSING::ERROR_READ;
                 mpFileContent->mpDataBloc = pBloc;
             }
 
-            offset += sizeof(TMM::FileContent_WAV::HEADER_BLOC_WAV) + pBloc->Header.DataSize;
-            if (feof(pFile)) break;
+            offset += pBloc->Header.DataSize;
+            if (file.EndOfFile()) break;
         } while (!isDataBloc);
 
-        fclose(pFile);
+        file.Close();
         return PARSING::SUCESS;
     }
 
     TMM::ERROR_CODE TMM::FileParser_WAV::Serialize(const char* path, FileContent* pFileContent)
     {
         mpFileContent = (FileContent_WAV*)pFileContent;
-        FILE* pFile;
-        if (fopen_s(&pFile, path, "wb")) return PARSING::ERROR_OPEN;
+     
+        TMM::OFile file(path);
+        if (file.ClearAndOpen() == false) return PARSING::ERROR_OPEN;
 
-        if (fwrite(&mpFileContent->mHeader, sizeof(TMM::FileContent_WAV::HEADER_WAV), 1, pFile) != 1) 
-            return PARSING::ERROR_WRITE;
-        if (fwrite(&mpFileContent->mpDataBloc->Header, sizeof(TMM::FileContent_WAV::HEADER_BLOC_WAV), 1, pFile) != 1) 
-            return PARSING::ERROR_WRITE;
-        if (fwrite(mpFileContent->mpDataBloc->pData, mpFileContent->mpDataBloc->Header.DataSize, 1, pFile) != 1) 
-            return PARSING::ERROR_WRITE;
+        if (file.Write(&mpFileContent->mHeader, sizeof(TMM::FileContent_WAV::HEADER_WAV)) == false) return PARSING::ERROR_WRITE;
+        if (file.Write(&mpFileContent->mpDataBloc->Header, sizeof(TMM::FileContent_WAV::HEADER_BLOC_WAV)) == false) return PARSING::ERROR_WRITE;
+        if (file.Write(mpFileContent->mpDataBloc->pData, mpFileContent->mpDataBloc->Header.DataSize) == false) return PARSING::ERROR_WRITE;
 
-        fclose(pFile);
+        file.Close();
         return TMM::PARSING::SUCESS;
     }
 
@@ -213,6 +212,7 @@ namespace TMM
         else if (mHeader.BitsPerSample == 32) return BASE_TYPE::FLOAT;
         else if (mHeader.BitsPerSample == 64) return BASE_TYPE::DOUBLE;
 
+
         return BASE_TYPE::UNKNOWN;
     }
 
@@ -244,9 +244,12 @@ namespace TMM
 
         unsigned int SizeToStart = start * mHeader.SampleRate * mHeader.BytePerSampleGroup;
         SizeToStart -= SizeToStart % GetSampleGroupByteSize();
+
         unsigned int SizeToEnd = end * mHeader.SampleRate * mHeader.BytePerSampleGroup;
         SizeToEnd -= SizeToEnd % GetSampleGroupByteSize();
-        unsigned int SampleGroupCountCutted = (SizeToEnd - SizeToStart) / mHeader.BytePerSampleGroup;
+
+        unsigned int SampleGroupCountCuttedSize = (SizeToEnd - SizeToStart);
+        unsigned int SampleGroupCountCutted = SampleGroupCountCuttedSize / mHeader.BytePerSampleGroup;
         desc.sampleGroupCount -= SampleGroupCountCutted;
 
         TMM::FileContent_WAV* pOut = TMM::FileContent_WAV::CreateEmpty(desc);
@@ -258,7 +261,7 @@ namespace TMM
         );
         memcpy(
             pOut->mpDataBloc->pData + SizeToStart,
-            mpDataBloc->pData + SizeToStart, 
+            mpDataBloc->pData + SizeToStart + SampleGroupCountCuttedSize, 
             mpDataBloc->Header.DataSize - SizeToEnd
         );
 
@@ -275,13 +278,13 @@ namespace TMM
         SizeToEnd -= SizeToEnd % GetSampleGroupByteSize();
         unsigned int SampleGroupCountCuttedSize = SizeToEnd - SizeToStart;
         unsigned int SampleGroupCountCutted = SampleGroupCountCuttedSize / mHeader.BytePerSampleGroup;
-        desc.sampleGroupCount -= SampleGroupCountCutted;
+        desc.sampleGroupCount = SampleGroupCountCutted;
 
         TMM::FileContent_WAV* pOut = TMM::FileContent_WAV::CreateEmpty(desc);
 
         memcpy(
-            pOut->mpDataBloc->pData + SizeToStart,
-            mpDataBloc->pData,
+            pOut->mpDataBloc->pData,
+            mpDataBloc->pData + SizeToStart,
             SampleGroupCountCuttedSize
         );
 

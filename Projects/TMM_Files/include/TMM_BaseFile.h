@@ -53,6 +53,8 @@ namespace TMM
 		virtual bool SeekAdvance(uint64_t offset);
 		virtual bool SeekEnd(uint64_t offset = 0);
 
+		virtual bool EndOfFile();
+
 		virtual bool Open();
 		virtual bool Close();
 	};

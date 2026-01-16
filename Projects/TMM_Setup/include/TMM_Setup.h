@@ -310,6 +310,28 @@ namespace TMM {
 	template <class T>
 	using Decay_t = decay<T>::type;
 
+	 
+	template<typename T>
+	struct MAX_INTEGER {
+		const static long long VALUE = (0x1ull << (sizeof(T) * 8 - 1)) - 1;
+	};
+
+	template<typename T>
+	struct MIN_INTEGER {
+		const static long long VALUE = -TMM::MAX_INTEGER<T>::VALUE - 1;
+	};
+
+	//template<>
+	//struct MAX_INTEGER<long long>
+	//{
+	//	const static long long SIZE = 9223372036854775807;
+	//};
+
+	//template<>
+	//struct MIN_INTEGER<long long>
+	//{
+	//	const static long long SIZE = -9223372036854775808;
+	//};
 
 	// === RUNNTIME MANIPULATION
 
