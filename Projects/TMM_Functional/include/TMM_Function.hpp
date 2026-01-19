@@ -8,6 +8,24 @@ namespace TMM {
 		return Function<Ret, Args...>(method);
 	}
 
+	template<typename Ret>
+	auto MakeFunction(Ret(*method)())
+	{
+		return Function<Ret>(method);
+	}
+
+	template<typename Ret, typename ...Args>
+	auto MakeFunctionPtr(Ret(*method)(Args...))
+	{
+		return new Function<Ret, Args...>(method);
+	}
+
+	template<typename Ret>
+	auto MakeFunctionPtr(Ret(*method)())
+	{
+		return new Function<Ret>(method);
+	}
+
 	template<typename Ret, typename ...Args>
 	inline Function<Ret, Args...>::Function(Ret(*pMethod)(Args...))
 		: mpMethod(pMethod) { }

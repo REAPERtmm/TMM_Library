@@ -29,11 +29,6 @@ if(NOT TARGET TMM_Collection_LIB)
     add_subdirectory("Projects/TMM_Collection/")
 endif()
 
-message(STATUS "Including TMM_Query at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Query/")
-if(NOT TARGET TMM_Query_LIB)
-    add_subdirectory("Projects/TMM_Query/")
-endif()
-
 message(STATUS "Including TMM_Threading at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Threading/")
 if(NOT TARGET TMM_Threading_LIB)
     add_subdirectory("Projects/TMM_Threading/")
@@ -62,16 +57,17 @@ target_link_libraries(
         TMM_Debugger_LIB
         TMM_Collection_LIB
         TMM_Functional_LIB
-        TMM_Query_LIB
         TMM_Threading_LIB
         TMM_Files_LIB
         TMM_Audio_LIB
         TMM_AI_LIB
 )
 
-file(
-	COPY ${PROJECT_SOURCE_DIR}/res/ 
-     	DESTINATION ${PROJECT_BINARY_DIR}/res
+add_custom_command(
+        TARGET TestProject POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/res"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Solution/res"
 )
 
 target_sources(

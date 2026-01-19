@@ -20,6 +20,15 @@ namespace TMM {
 
 	template <typename Ret, typename... Args>
 	auto MakeFunction(Ret(*method)(Args...));
+
+	template <typename Ret>
+	auto MakeFunction(Ret(*method)());
+
+	template <typename Ret, typename... Args>
+	auto MakeFunctionPtr(Ret(*method)(Args...));
+
+	template <typename Ret>
+	auto MakeFunctionPtr(Ret(*method)());
 }
 
 #include <TMM_Function.hpp>

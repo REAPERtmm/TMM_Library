@@ -15,6 +15,18 @@ namespace TMM {
 	}
 
 	template<typename Obj, typename Ret, typename ...Args>
+	auto MakeMethodPtr(Obj* obj, Ret(Obj::* method)(Args...))
+	{
+		return new Method<Obj, Ret, Args...>(obj, method);
+	}
+
+	template<typename Obj, typename Ret>
+	auto MakeMethodPtr(Obj* obj, Ret(Obj::* method)())
+	{
+		return new Method<Obj, Ret>(obj, method);
+	}
+
+	template<typename Obj, typename Ret, typename ...Args>
 	inline Method<Obj, Ret, Args...>::Method(Obj* pObj, Ret(Obj::* pMethod)(Args...))
 		: mpObj(pObj), mpMethod(pMethod)
 	{

@@ -49,6 +49,12 @@ namespace TMM {
 	template <typename Obj, typename Ret>
 	auto MakeMethod(Obj* obj, Ret(Obj::* method)());
 
+	template <typename Obj, typename Ret, typename... Args>
+	auto MakeMethodPtr(Obj* obj, Ret(Obj::* method)(Args...));
+
+	template <typename Obj, typename Ret>
+	auto MakeMethodPtr(Obj* obj, Ret(Obj::* method)());
+
 	template<typename Obj, typename Ret, typename... Args>
 	Method(Obj*, Ret(Obj::*)(Args...)) -> Method<Obj, Ret, Args...>;
 
