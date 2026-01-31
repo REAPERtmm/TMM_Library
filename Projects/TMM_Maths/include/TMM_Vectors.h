@@ -580,6 +580,23 @@ namespace TMM
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 	}
 
+	// === Rect ===
+
+	template<typename T>
+	struct Rect2D
+	{
+		Vec2<T> position;
+		Vec2<T> size;
+	};
+
+	template<typename T>
+	struct Rect3D
+	{
+		Vec3<T> position;
+		Vec3<T> size;
+	};
+
+
 	// ===  using  ===
 
 	using Vec2f = Vec2<float>;
@@ -587,15 +604,27 @@ namespace TMM
 	using Vec2i = Vec2<int>;
 	using Vec2u = Vec2<unsigned int>;
 
+	using Rect2Df = Rect2D<float>;
+	using Rect2Dd = Rect2D<double>;
+	using Rect2Di = Rect2D<int>;
+	using Rect2Du = Rect2D<unsigned int>;
+
 	using Vec3f = Vec3<float>;
 	using Vec3d = Vec3<double>;
 	using Vec3i = Vec3<int>;
 	using Vec3u = Vec3<unsigned int>;
 	using ColorRGB255 = Vec3<unsigned char>;
 
+	using Rect3Df = Rect3D<float>;
+	using Rect3Dd = Rect3D<double>;
+	using Rect3Di = Rect3D<int>;
+	using Rect3Du = Rect3D<unsigned int>;
+
 	using Vec4f = Vec4<float>;
 	using Vec4d = Vec4<double>;
 	using Vec4i = Vec4<int>;
 	using Vec4u = Vec4<unsigned int>;
 	using ColorRGBA255 = Vec4<unsigned char>;
+
+
 }

@@ -8,6 +8,7 @@ file(
 		src/*.cpp
 		src/*.c
 )    
+source_group("src" FILES ${TMM_Collection_SRC})
 message(STATUS "Library TMM_Collection_LIB Sources : ${TMM_Collection_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_Collection_HEADERS})
 message(STATUS "Library TMM_Collection_LIB Headers : ${TMM_Collection_HEADERS}")
 
 add_library( TMM_Collection_LIB ${TMM_Collection_SRC} ${TMM_Collection_HEADERS} )   

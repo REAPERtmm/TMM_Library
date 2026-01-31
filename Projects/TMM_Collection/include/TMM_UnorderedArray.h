@@ -11,7 +11,6 @@ namespace TMM {
 	public:
 		ArrayUnordered() : Array<T>() {}
 		ArrayUnordered(uint64_t allacationByteSize) : Array<T>(allacationByteSize) {}
-		virtual ~ArrayUnordered() override {}
 
 		virtual void Remove(const T& value) override;
 		virtual void RemoveAt(uint64_t index) override;

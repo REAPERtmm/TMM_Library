@@ -1,12 +1,14 @@
 #include "TMM_Debugger.h"
 #include "TMM_Debugger.h"
+#include "TMM_Debugger.h"
 
 namespace TMM {
 	Debugger::Debugger()
 	{
 		mThreadSafetyEnabled = false;
 		mErrors = new ERROR_DESCRIPTOR[32];
-		mDescriptor = {};
+		mFlags = {};
+		mOutput = {};
 		mIsInit = false;
 	}
 
@@ -39,16 +41,16 @@ namespace TMM {
 		if (mCurrentValid && mCurrentFlag.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
 			mErrors[mErrorIndex].ErrorMsg += txt;
 		}
-		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_CONSOLE)) {
-			std::cout << txt;
+		if (mOutput.Contain(DEBUGGER_OUTPUT::OUTPUT_CONSOLE)) {
+			std::cout << std::string(txt, length);
 		}
-		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_DEBUGGER)) {
+		if (mOutput.Contain(DEBUGGER_OUTPUT::OUTPUT_DEBUGGER)) {
 			OutputDebugStringA(txt);
 		}
 #ifdef TMM_DEBUGGER_FILES_ENABLE
-		if (mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
+		if (mOutput.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
 			if (mpOutputFile->Write(txt, length) == false) {
-				mDescriptor.Output ^= DEBUGGER_OUTPUT::OUTPUT_LOGS;
+				mOutput ^= DEBUGGER_OUTPUT::OUTPUT_LOGS;
 				OutputString("Failed to write in logs : stopping the log feature");
 			}
 		}
@@ -59,7 +61,7 @@ namespace TMM {
 	{
 		static Debugger debugger;
 		debugger.mCurrentFlag = flags;
-		debugger.mCurrentValid = debugger.mDescriptor.Flags.Contain(flags);
+		debugger.mCurrentValid = debugger.mFlags.Contain(flags);
 		return &debugger;
 	}
 
@@ -73,7 +75,7 @@ namespace TMM {
 		return pDebugger;
 	}
 
-	bool Debugger::Init(const BitMask<DEBUGGER_FLAGS>& flags, const BitMask<DEBUGGER_OUTPUT>& output, bool threadSafe)
+	bool Debugger::Init(DEBUGGER_DESCRIPTOR& desc, bool threadSafe)
 	{
 		Debugger* pDbg = InternalGet(DEBUGGER_FLAGS::NONE);
 		pDbg->mThreadSafetyEnabled = threadSafe;
@@ -81,10 +83,10 @@ namespace TMM {
 			InitializeCriticalSection(&pDbg->mCS);
 			EnterCriticalSection(&pDbg->mCS);
 		}
-		pDbg->mDescriptor.Flags = flags;
-		pDbg->mDescriptor.Output = output;
+		pDbg->mFlags = desc.Flags;
+		pDbg->mOutput = desc.Output;
 #ifdef TMM_DEBUGGER_FILES_ENABLE
-		if (pDbg->mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
+		if (pDbg->mOutput.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
 			pDbg->mpOutputFile = new TMM::OFile("Logs.txt");
 			if (pDbg->mpOutputFile->ClearAndOpen() == false) {
 				pDbg->OutputString("Failed to open Logs");
@@ -113,7 +115,7 @@ namespace TMM {
 			*Debugger::Get(DEBUGGER_FLAGS::DBG_ERROR) << "============================\n";
 		}
 #ifdef TMM_DEBUGGER_FILES_ENABLE
-		if (pDbg->mDescriptor.Output.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
+		if (pDbg->mOutput.Contain(DEBUGGER_OUTPUT::OUTPUT_LOGS)) {
 			pDbg->mpOutputFile->Close();
 			delete pDbg->mpOutputFile;
 		}
@@ -132,10 +134,15 @@ namespace TMM {
 		return *this;
 	}
 
+	Debugger& Debugger::operator<<(const String& other)
+	{
+		OutputString(other.data(), other.size());
+		return *this;
+	}
+
 	Debugger& Debugger::operator<<(char other)
 	{
-		CHAR txt[2]{ other, '\0' };
-		OutputString(txt, 1);
+		OutputString(&other, 1);
 		return *this;
 	}
 
@@ -215,7 +222,7 @@ namespace TMM {
 
 	Debugger& Debugger::RegisterError(uint64_t line, const char* functionName, const char* fileName)
 	{
-		if (mCurrentValid && mDescriptor.Flags.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
+		if (mCurrentValid && mFlags.Contain(DEBUGGER_FLAGS::DBG_ERROR)) {
 			mIsRegisteringError = true;
 			mErrors[mErrorIndex].Line = line;
 			mErrors[mErrorIndex].FunctionName = functionName;

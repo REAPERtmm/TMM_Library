@@ -85,6 +85,9 @@ namespace TMM {
 		// Return the amount of different KEYS
 		virtual uint64_t Size() const override final;
 
+		// Resize to fit size element
+		virtual void Resize(uint64_t size);
+
 		// Return the T associated with a uint64_t
 		virtual T& operator[](const uint64_t& key);
 

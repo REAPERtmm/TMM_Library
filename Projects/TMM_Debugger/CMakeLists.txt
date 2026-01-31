@@ -8,6 +8,7 @@ file(
 		src/*.cpp
 		src/*.c
 )    
+source_group("src" FILES ${TMM_Debugger_SRC})
 message(STATUS "Library TMM_Debugger_LIB Sources : ${TMM_Debugger_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_Debugger_HEADERS})
 message(STATUS "Library TMM_Debugger_LIB Headers : ${TMM_Debugger_HEADERS}")
 
 add_library( TMM_Debugger_LIB ${TMM_Debugger_SRC} ${TMM_Debugger_HEADERS} )   

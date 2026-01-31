@@ -8,6 +8,7 @@ file(
 		src/*.cpp
 		src/*.c
 )    
+source_group("src" FILES ${TMM_Audio_SRC})
 message(STATUS "Library TMM_Audio_LIB Sources : ${TMM_Audio_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_Audio_HEADERS})
 message(STATUS "Library TMM_Audio_LIB Headers : ${TMM_Audio_HEADERS}")
 
 add_library( TMM_Audio_LIB ${TMM_Audio_SRC} ${TMM_Audio_HEADERS} )   

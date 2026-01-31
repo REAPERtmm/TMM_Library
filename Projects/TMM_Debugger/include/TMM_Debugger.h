@@ -78,7 +78,8 @@ namespace TMM {
 		bool mCurrentValid = false;
 		BitMask<DEBUGGER_FLAGS> mCurrentFlag = DEBUGGER_FLAGS::NONE;
 
-		DEBUGGER_DESCRIPTOR mDescriptor;
+		BitMask<DEBUGGER_FLAGS> mFlags;
+		BitMask<DEBUGGER_OUTPUT> mOutput;
 
 #ifdef TMM_DEBUGGER_FILES_ENABLE
 		TMM::OFile* mpOutputFile;
@@ -102,10 +103,11 @@ namespace TMM {
 		static Debugger* InternalGet(DEBUGGER_FLAGS flags);
 	public:
 		static Debugger* Get(DEBUGGER_FLAGS flags);
-		static bool Init(const BitMask<DEBUGGER_FLAGS>& flags, const BitMask<DEBUGGER_OUTPUT>& output, bool threadSafe = false);
+		static bool Init(DEBUGGER_DESCRIPTOR& desc, bool threadSafe = false);
 		static void UnInit();
 
 		Debugger& operator << (const char* other);
+		Debugger& operator << (const String& other);
 		Debugger& operator << (char other);
 
 		Debugger& operator << (float other);

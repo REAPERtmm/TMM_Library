@@ -3,76 +3,229 @@
 namespace TMM 
 {
 
-	ThreadContext<char>* Thread::GetContextPtr()
+
+	void ThreadHandle::SetGateWay(ThreadGateWay* pGateWay)
 	{
-		return reinterpret_cast<ThreadContext<char>*>(mpThreadContext);
+		mpGateWay = pGateWay;
 	}
 
-	Thread::Thread(const char* name, bool startPaused)
-		: mHandle(nullptr), mID(0), mpThreadContext(new ThreadContext<char>(name, this, startPaused)) 
-	{ 
+	ThreadHandle::ThreadHandle(void* pData, uint64_t size) :
+		mpData(pData),
+		mDataSize(size),
+		mShouldPause(false),
+		mShouldTerminate(false),
+		mIsPaused(false),
+		mHasTerminated(false)
+	{
+		InitializeCriticalSection(&mCS);
 
+		mPauseEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	}
 
-	Thread::~Thread()
+	ThreadHandle::~ThreadHandle()
 	{
-		if (mpThreadContext == nullptr) return;
-		if (GetContextPtr()->IsExited()) {
-			delete GetContextPtr();
-			mpThreadContext = nullptr;
+		DeleteCriticalSection(&mCS);
+	}
+
+	void* ThreadHandle::GetData()
+	{
+		void* r;
+		EnterCriticalSection(&mCS);
+		r = mpData;
+		LeaveCriticalSection(&mCS);
+		return r;
+	}
+
+	uint64_t ThreadHandle::GetDataSize()
+	{
+		uint64_t r;
+		EnterCriticalSection(&mCS);
+		r = mDataSize;
+		LeaveCriticalSection(&mCS);
+		return r;
+	}
+
+	bool ThreadHandle::IsPaused()
+	{
+		bool r;
+		EnterCriticalSection(&mCS);
+		r = mIsPaused;
+		LeaveCriticalSection(&mCS);
+		return r;
+	}
+
+	bool ThreadHandle::HasTerminated()
+	{
+		bool r;
+		EnterCriticalSection(&mCS);
+		r = mHasTerminated;
+		LeaveCriticalSection(&mCS);
+		return r;
+	}
+
+	bool ThreadHandle::ShouldPause()
+	{
+		bool r;
+		EnterCriticalSection(&mCS);
+		r = mShouldPause;
+		LeaveCriticalSection(&mCS);
+		return r;
+	}
+
+	bool ThreadHandle::ShouldTerminate()
+	{
+		bool r;
+		EnterCriticalSection(&mCS);
+		r = mShouldTerminate;
+		LeaveCriticalSection(&mCS);
+		return r;
+	}
+
+	uint64_t ThreadHandle::GetExitCode()
+	{
+		uint64_t code;
+		EnterCriticalSection(&mCS);
+		code = mTerminationCode;
+		LeaveCriticalSection(&mCS);
+		return code;
+	}
+
+	void ThreadHandle::Pause()
+	{
+		EnterCriticalSection(&mCS);
+		mShouldPause = true;
+		LeaveCriticalSection(&mCS);
+	}
+
+	void ThreadHandle::Resume()
+	{
+		EnterCriticalSection(&mCS);
+		if (IsPaused())
+		{
+			SetEvent(mPauseEvent);
 		}
-		//else {
-		//	TerminateWait();
-		//	delete GetContextPtr();
-		//}
+		mShouldPause = false;
+		LeaveCriticalSection(&mCS);
 	}
 
-	HANDLE Thread::GetHandle() const
+	void ThreadHandle::Terminate()
 	{
-		return mHandle;
+		EnterCriticalSection(&mCS);
+		mShouldTerminate = true;
+		LeaveCriticalSection(&mCS);
 	}
 
-	uint32_t Thread::GetID() const
+
+
+	bool ThreadHandle::Synchronize()
 	{
-		return mID;
+		if (ShouldTerminate() || HasTerminated()) return true;
+
+		if (ShouldPause()) {
+			EnterCriticalSection(&mCS);
+			mIsPaused = true;
+			LeaveCriticalSection(&mCS);
+			WaitForSingleObject(mPauseEvent, INFINITE);
+		}
+		return ShouldTerminate();
 	}
 
-	ThreadStatusCode Thread::GetStatus()
+	void ThreadHandle::Exit(uint64_t code)
 	{
-		return GetContextPtr()->GetStatus();
+		EnterCriticalSection(&mCS);
+		mHasTerminated = true;
+		mTerminationCode = code;
+		mpGateWay->StopWaitThreadTermination();
+		LeaveCriticalSection(&mCS);
 	}
 
-	ThreadStatusCode Thread::TerminateWait(uint32_t maxDuration)
+
+	void ThreadGateWay::StopWaitThreadTermination()
 	{
-		Terminate();
-		WaitForSingleObject(mHandle, maxDuration);
-		mHandle = nullptr;
-		mID = 0;
-		return GetStatus();
+		SetEvent(mThreadTerminateWait);
 	}
 
-	void Thread::Terminate()
+	ThreadGateWay::ThreadGateWay(ThreadHandle* pHandle) :
+		mpHandle(pHandle)
 	{
-		GetContextPtr()->SafeTerminate();
+		mThreadTerminateWait = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		pHandle->SetGateWay(this);
 	}
 
-	void Thread::Pause()
+	bool ThreadGateWay::IsPaused() { return mpHandle->IsPaused(); }
+	bool ThreadGateWay::Exited(uint64_t* pCode)
 	{
-		GetContextPtr()->SafePause();
+		bool Terminated = mpHandle->HasTerminated();
+		if (pCode != nullptr) *pCode = mpHandle->GetExitCode();
+		return Terminated;
 	}
-	
-	bool Thread::IsPaused() 
-	{
-		return GetContextPtr()->IsPaused();
+	void ThreadGateWay::Pause() { mpHandle->Pause(); }
+	void ThreadGateWay::Resume() { mpHandle->Resume(); }
+	void ThreadGateWay::Terminate() { mpHandle->Terminate(); }
+	void ThreadGateWay::TerminateWait() { 
+		mpHandle->Terminate(); 
+		WaitForSingleObject(mThreadTerminateWait, INFINITE);
 	}
 
-	void Thread::Resume()
+	DWORD Thread::ProcThread(ThreadCtx* pCtx)
 	{
-		GetContextPtr()->SafeResume();
+		pCtx->pFunction->Call(pCtx->pHandle);
+		return 0;
 	}
 
 	uint16_t Thread::GetMaxThreadCount()
 	{
 		return static_cast<uint16_t>(GetMaximumProcessorCount(ALL_PROCESSOR_GROUPS));
+	}
+
+	Thread::Thread() :
+		mCtx(nullptr, nullptr),
+		mpGateWay(nullptr),
+		mHandle(nullptr),
+		mID(0),
+		mIsDestroyed(true)
+	{
+
+	}
+
+	Thread::~Thread()
+	{
+		End();
+	}
+
+	void Thread::Start(TMM::Callable<void, ThreadHandle*>* pFunc, void* pData, uint64_t size)
+	{
+		mCtx.pHandle = new ThreadHandle(pData, size);
+		mCtx.pFunction = pFunc;
+		mpGateWay = new ThreadGateWay(mCtx.pHandle);
+
+		mHandle = CreateThread(
+			NULL,
+			0,
+			(LPTHREAD_START_ROUTINE)ProcThread,
+			&mCtx,
+			0,
+			&mID
+		);
+		mIsDestroyed = false;
+	}
+
+	void Thread::End()
+	{
+		if (mIsDestroyed) return;
+
+		if(mpGateWay->Exited(nullptr) == false)
+			mpGateWay->TerminateWait();
+
+		delete mpGateWay;
+		delete mCtx.pFunction;
+		delete mCtx.pHandle;
+
+		mIsDestroyed = true;
+	}
+
+	ThreadGateWay* Thread::GetGateWay()
+	{
+		return mpGateWay;
 	}
 }

@@ -179,6 +179,18 @@ namespace TMM {
 	}
 
 	template<typename T>
+	inline void Array<T>::Resize(uint64_t size)
+	{
+		uint64_t copied = TMM_MIN(mSize, size);
+		mSize = size;
+		mCapacity = TMM_MAX(16, size);
+		T* pBuffer = new T[mCapacity];
+		memcpy(mpData, pBuffer, sizeof(T) * copied);
+		delete[] mpData;
+		mpData = pBuffer;
+	}
+
+	template<typename T>
 	inline T& Array<T>::operator[](const uint64_t& key)
 	{
 		return InternalGet(key);

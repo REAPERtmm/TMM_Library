@@ -7,7 +7,8 @@ file(
 	CONFIGURE_DEPENDS
 		src/*.cpp
 		src/*.c
-)    
+)   
+source_group("src" FILES ${TMM_Maths_SRC}) 
 message(STATUS "Library TMM_Maths_LIB Sources : ${TMM_Maths_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_Maths_HEADERS})
 message(STATUS "Library TMM_Maths_LIB Headers : ${TMM_Maths_HEADERS}")
 
 add_library( TMM_Maths_LIB ${TMM_Maths_SRC} ${TMM_Maths_HEADERS} )   

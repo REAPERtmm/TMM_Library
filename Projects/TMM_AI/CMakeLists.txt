@@ -8,6 +8,7 @@ file(
 		src/*.cpp
 		src/*.c
 )    
+source_group("src" FILES ${TMM_AI_SRC})
 message(STATUS "Library TMM_AI_LIB Sources : ${TMM_AI_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_AI_HEADERS})
 message(STATUS "Library TMM_AI_LIB Headers : ${TMM_AI_HEADERS}")
 
 add_library( TMM_AI_LIB ${TMM_AI_SRC} ${TMM_AI_HEADERS} )   

@@ -7,7 +7,8 @@ file(
 	CONFIGURE_DEPENDS
 		src/*.cpp
 		src/*.c
-)    
+)  
+source_group("src" FILES ${TMM_Threading_SRC})  
 message(STATUS "Library TMM_Threading_LIB Sources : ${TMM_Threading_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_Threading_HEADERS})
 message(STATUS "Library TMM_Threading_LIB Headers : ${TMM_Threading_HEADERS}")
 
 add_library( TMM_Threading_LIB ${TMM_Threading_SRC} ${TMM_Threading_HEADERS} )   
@@ -38,10 +40,17 @@ if(NOT TARGET TMM_Functional_LIB)
 		${CMAKE_CURRENT_BINARY_DIR}/TMM_Functional_build
 	)
 endif()
+if(NOT TARGET TMM_Collection_LIB)
+	add_subdirectory(
+		${CMAKE_CURRENT_SOURCE_DIR}/../TMM_Collection
+		${CMAKE_CURRENT_BINARY_DIR}/TMM_Collection_build
+	)
+endif()
 
 target_link_libraries(
 	TMM_Threading_LIB
 	PUBLIC
 		TMM_Setup_LIB
 		TMM_Functional_LIB
+		TMM_Collection_LIB
 )

@@ -8,6 +8,7 @@ file(
 		src/*.cpp
 		src/*.c
 )    
+source_group("src" FILES ${TMM_Functional_SRC})
 message(STATUS "Library TMM_Functional_LIB Sources : ${TMM_Functional_SRC}")
 
 file(
@@ -17,6 +18,7 @@ file(
 		include/*.hpp
 		include/*.inl
 )
+source_group("include" FILES ${TMM_Functional_HEADERS})
 message(STATUS "Library TMM_Functional_LIB Headers : ${TMM_Functional_HEADERS}")
 
 add_library( TMM_Functional_LIB ${TMM_Functional_SRC} ${TMM_Functional_HEADERS} )  

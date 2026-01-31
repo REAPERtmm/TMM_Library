@@ -65,7 +65,7 @@
 
 namespace TMM {
 
-	namespace CONST
+	namespace CONSTANT
 	{
 		static constexpr double E					= 2.71828182845904523536;
 		static constexpr double GOLDEN_RATION		= 1.61803398874989484820;
@@ -348,3 +348,5 @@ namespace TMM {
 
 #include "TMM_BitField.h"
 #include "TMM_BitMask.h"
+#include "TMM_String.h"
+#include "TMM_StringBuilder.h"

@@ -4,50 +4,87 @@
 #include <TMM_Function.h>
 #include "TMM_Thread.h"
 
+// TODO : remove
+#include <iostream>
+
 namespace TMM
 {
-	template<typename Data>
-	struct ThreadArg {
-		Thread*		pThread		= nullptr;
-		Data*		pData		= nullptr;
-		uint8_t		layer		= 0;
+
+	struct ThreadListDelimiter
+	{
+		// Start | stride | offset | stride | offset | ...
+		uint64_t start;
+		uint64_t end;
 	};
 
-	template<typename Data>
-	class ThreadList {
-		struct ThreadProcDescriptor
-		{
-			ThreadList* pList;
-			uint64_t index;
-		};
+	template<typename Resource_t>
+	struct ThreadListResource
+	{
+		Resource_t* pData;
+		uint64_t dataSize;
+	};
 
-		TMM::Function<bool, ThreadArg<Data>*>*	mpProc;
 
-		ThreadArg<Data>*						mThreads;
-		ThreadProcDescriptor*					mThreadProcDescriptors;
-		uint16_t								mThreadCount;
 
-		uint8_t									mCurrentLayer;
-		uint8_t									mLayerCount;
+	template<typename Resource_t>
+	class ThreadListWorkerCtx
+	{
+		ThreadListResource<Resource_t>* mpResource;
+		ThreadListDelimiter mDelimiter;
+		TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* mpFunc;
 
-		bool									mIsTerminated;
+		uint64_t mCurrent;
 
-		void ResumeCurrentLayer();
-		bool IsLayerFinished();
-		bool SwapLayer();
-
-		static DWORD ThreadProc(ThreadContext<ThreadProcDescriptor>* pHandle);
-
-		ThreadArg<Data>* InternalGetThreadInfo(uint32_t index);
 	public:
-		ThreadList(uint16_t threadCount, ThreadArg<Data>* args, TMM::Function<bool, ThreadArg<Data>*>* pProc);
+		ThreadListWorkerCtx();
+		virtual ~ThreadListWorkerCtx();
+
+		void Init(
+			ThreadListResource<Resource_t>* pResource, 
+			const ThreadListDelimiter& delimiter,
+			TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* pFunc
+		);
+
+		void Reset();
+
+		bool Step();
+	};
+
+	template<typename Resource_t>
+	struct ThreadListDescriptor
+	{
+		TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* pFunc;
+		ThreadListDelimiter* pThreadDelimiters;
+		ThreadListResource<Resource_t> resource;
+		uint16_t threadCount;
+		~ThreadListDescriptor() { delete[] pThreadDelimiters; }
+	};
+
+	template<typename Resource_t>
+	class ThreadList {
+		TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* mpFunc;
+		ThreadListResource<Resource_t> mResource;
+		ThreadListWorkerCtx<Resource_t>* mpWorkersCtx;
+		uint16_t mThreadCount;
+		Thread* mpWorkers;
+
+		static void WorkerProc(ThreadHandle* pHandle);
+
+	public:
+		ThreadList();
 		virtual ~ThreadList();
 
-		void Update();
-		const ThreadArg<Data>* GetThreadInfo(uint32_t index) const;
+		void Init(ThreadListDescriptor<Resource_t>* pDesc);
 
-		void TerminateWait();
+		void Start();
+
+		void Process();
+
+		void WaitForAllEnd();
 	};
+
+
+
 }
 
 #include "TMM_ThreadList.hpp"
