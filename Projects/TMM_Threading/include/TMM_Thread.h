@@ -56,18 +56,26 @@ namespace TMM
 		ThreadHandle* mpHandle;
 		HANDLE mThreadTerminateWait;
 
+		HANDLE mPauseNotification;
+
+		CRITICAL_SECTION mCS;
+
 		friend class ThreadHandle;
 
 		void StopWaitThreadTermination();
+		HANDLE GetPauseNotification();
 	public:
 		ThreadGateWay(ThreadHandle* pHandle);
+		virtual ~ThreadGateWay();
 
 		bool IsPaused();
-		bool Exited(uint64_t* pCode);
+		bool Exited(uint64_t* pCode = nullptr);
 		void Pause();
 		void Resume();
 		void Terminate();
 		void TerminateWait();
+
+		void WaitForPauseNotification();
 	};
 
 	class Thread {

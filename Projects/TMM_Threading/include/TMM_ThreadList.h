@@ -12,9 +12,58 @@ namespace TMM
 
 	struct ThreadListDelimiter
 	{
-		// Start | stride | offset | stride | offset | ...
+		uint64_t layer;
+		ThreadListDelimiter(uint64_t _layer = 0) : layer(_layer) { }
+		virtual bool Next(uint64_t current, uint64_t& dest, uint64_t resource_size) = 0;
+		virtual void Reset(uint64_t& dest) = 0;
+	};
+
+	struct ThreadListDelimiter1D : public ThreadListDelimiter
+	{
+		// Start |	  offset    |	 offset    | ...
+		// Start | stride | ... | stride | ... | ...
+		//         ^^^^^^^        ^^^^^^^
+		//		   Working        Working
+
 		uint64_t start;
+		uint64_t stride;
+		uint64_t offset;
 		uint64_t end;
+
+		ThreadListDelimiter1D(
+			uint64_t _start,
+			uint64_t _stride,
+			uint64_t _offset,
+			uint64_t _end,
+			uint64_t _layer = 0
+		) :
+			ThreadListDelimiter(_layer),
+			start(_start),
+			stride(_stride),
+			offset(_offset),
+			end(_end)
+		{}
+
+		bool Next(uint64_t current, uint64_t& dest, uint64_t resource_size) override
+		{
+			current++;
+			if ((current - start) % offset >= stride)
+			{
+				current += offset - stride;
+			}
+			dest = current;
+			if (current >= 1024)
+			{
+				int a = 1;
+			}
+			if (current >= end || current >= resource_size) return false;
+			return true;
+		}
+
+		void Reset(uint64_t& dest) override
+		{
+			dest = start;
+		}
 	};
 
 	template<typename Resource_t>
@@ -24,14 +73,12 @@ namespace TMM
 		uint64_t dataSize;
 	};
 
-
-
 	template<typename Resource_t>
 	class ThreadListWorkerCtx
 	{
 		ThreadListResource<Resource_t>* mpResource;
-		ThreadListDelimiter mDelimiter;
-		TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* mpFunc;
+		ThreadListDelimiter* mpDelimiter;
+		TMM::Callable<void, Resource_t&, uint64_t, const Resource_t*, uint64_t>* mpFunc;
 
 		uint64_t mCurrent;
 
@@ -41,11 +88,13 @@ namespace TMM
 
 		void Init(
 			ThreadListResource<Resource_t>* pResource, 
-			const ThreadListDelimiter& delimiter,
-			TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* pFunc
+			ThreadListDelimiter* pDelimiter,
+			TMM::Callable<void, Resource_t&, uint64_t, const Resource_t*, uint64_t>* pFunc
 		);
 
 		void Reset();
+
+		uint64_t GetLayer() const { return mpDelimiter->layer; }
 
 		bool Step();
 	};
@@ -53,8 +102,9 @@ namespace TMM
 	template<typename Resource_t>
 	struct ThreadListDescriptor
 	{
-		TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* pFunc;
-		ThreadListDelimiter* pThreadDelimiters;
+		// <! void f(Resource_t& edited_data, uint64_t index_edited, const Resource_t* unsafe_resource, uint64_t resouce_size)
+		TMM::Callable<void, Resource_t&, uint64_t, const Resource_t*, uint64_t>* pFunc;
+		ThreadListDelimiter** pThreadDelimiters;
 		ThreadListResource<Resource_t> resource;
 		uint16_t threadCount;
 		~ThreadListDescriptor() { delete[] pThreadDelimiters; }
@@ -62,11 +112,12 @@ namespace TMM
 
 	template<typename Resource_t>
 	class ThreadList {
-		TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* mpFunc;
+		TMM::Callable<void, Resource_t&, uint64_t, const Resource_t*, uint64_t>* mpFunc;
 		ThreadListResource<Resource_t> mResource;
 		ThreadListWorkerCtx<Resource_t>* mpWorkersCtx;
 		uint16_t mThreadCount;
 		Thread* mpWorkers;
+		uint64_t mLayerCount;
 
 		static void WorkerProc(ThreadHandle* pHandle);
 
@@ -78,7 +129,8 @@ namespace TMM
 
 		void Start();
 
-		void Process();
+		void ProcessAllLayers();
+		void ProcessLayer(uint64_t layer);
 
 		void WaitForAllEnd();
 	};

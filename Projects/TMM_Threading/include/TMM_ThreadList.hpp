@@ -12,14 +12,14 @@ namespace TMM
 	template<typename Resource_t>
 	inline ThreadListWorkerCtx<Resource_t>::~ThreadListWorkerCtx()
 	{
-
+		delete mpDelimiter;
 	}
 
 	template<typename Resource_t>
-	inline void ThreadListWorkerCtx<Resource_t>::Init(ThreadListResource<Resource_t>* pResource, const ThreadListDelimiter& delimiter, TMM::Callable<void, Resource_t&, const Resource_t*, uint64_t>* pFunc)
+	inline void ThreadListWorkerCtx<Resource_t>::Init(ThreadListResource<Resource_t>* pResource, ThreadListDelimiter* pDelimiter, TMM::Callable<void, Resource_t&, uint64_t, const Resource_t*, uint64_t>* pFunc)
 	{
 		mpResource = pResource;
-		mDelimiter = delimiter;
+		mpDelimiter = pDelimiter;
 		mpFunc = pFunc;
 		Reset();
 	}
@@ -27,18 +27,15 @@ namespace TMM
 	template<typename Resource_t>
 	inline void ThreadListWorkerCtx<Resource_t>::Reset()
 	{
-		mCurrent = mDelimiter.start;
+		mpDelimiter->Reset(mCurrent);
 	}
 
 	template<typename Resource_t>
 	inline bool ThreadListWorkerCtx<Resource_t>::Step()
 	{
-		mpFunc->Call(mpResource->pData[mCurrent], mpResource->pData, mpResource->dataSize);
-
-		uint64_t v = ++mCurrent;
-		if (v == mDelimiter.end) return false;
-		//std::cout << " | i:" << mCurrent << std::endl;
-		return true;
+		//std::cout << "Step : " << mCurrent << "{ start:" << mDelimiter.start << ", stride:" << mDelimiter.stride << ", offset:" << mDelimiter.offset << ", layer:" << mDelimiter.layer << " }" << std::endl;
+		mpFunc->Call(mpResource->pData[mCurrent], mCurrent, mpResource->pData, mpResource->dataSize);
+		return mpDelimiter->Next(mCurrent, mCurrent, mpResource->dataSize);
 	}
 
 	template<typename Resource_t>
@@ -50,7 +47,7 @@ namespace TMM
 		while (pHandle->Synchronize() == false)
 		{
 			pCtx->Reset();
-			//std::cout << "Launching..." << std::endl;
+			//std::cout << "Launching... " << pCtx->GetLayer() << std::endl;
 			while (pCtx->Step()) { } // execute Step until return false (eq.no more data to process)
 			pHandle->Pause();
 		}
@@ -103,14 +100,25 @@ namespace TMM
 		{
 			mpWorkers[i].Start(TMM::MakeFunctionPtr(WorkerProc), mpWorkersCtx + i, 1);
 		}
+		WaitForAllEnd();
 	}
 
 	template<typename Resource_t>
-	inline void ThreadList<Resource_t>::Process()
+	inline void ThreadList<Resource_t>::ProcessAllLayers()
 	{
-		WaitForAllEnd();
 		for (uint64_t i = 0; i < mThreadCount; ++i)
 		{
+			mpWorkers[i].GetGateWay()->Resume();
+		}
+	}
+
+	template<typename Resource_t>
+	inline void ThreadList<Resource_t>::ProcessLayer(uint64_t layer)
+	{
+		for (uint64_t i = 0; i < mThreadCount; ++i)
+		{
+			uint64_t current = mpWorkersCtx[i].GetLayer();
+			if (current != layer) continue;
 			mpWorkers[i].GetGateWay()->Resume();
 		}
 	}
@@ -120,8 +128,7 @@ namespace TMM
 	{
 		for (uint64_t i = 0; i < mThreadCount; ++i)
 		{
-			// TODO : Remplace with WaitForSingleObject
-			while (mpWorkers[i].GetGateWay()->IsPaused() == false) {}
+			mpWorkers[i].GetGateWay()->WaitForPauseNotification();
 		}
 	}
 

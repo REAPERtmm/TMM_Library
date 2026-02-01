@@ -6,6 +6,8 @@
 
 namespace TMM {
 
+	// === Method ===
+
 	template<typename Obj, typename Ret, typename... Args>
 	class Method : public Callable<Ret, Args...> {
 	protected:
@@ -20,27 +22,6 @@ namespace TMM {
 
 		virtual void SwapObj(Obj* pObj) final;
 		virtual void operator = (Obj* pObj) final;
-	};
-
-	template<typename Ret, typename... Args>
-	class LambdaMethod : public Callable<Ret, Args...>
-	{
-		using CallFn = Ret(*)(void*, Args...);
-		using DestroyFn = void(*)(void*);
-		void* mpObj = nullptr;
-		CallFn mCall = nullptr;
-		DestroyFn mDestroy = nullptr;
-	public:
-		LambdaMethod() = default;
-
-		template<typename F>
-		LambdaMethod(F&& f);
-
-		~LambdaMethod();
-
-		Ret operator()(Args... args) const override;
-
-		Ret Call(Args... args) const override;
 	};
 
 	template <typename Obj, typename Ret, typename... Args>
@@ -60,6 +41,7 @@ namespace TMM {
 
 	template<typename Obj, typename Ret, typename... Args>
 	Method(Obj*, Ret(Obj::*)(Args...) const) -> Method<Obj, Ret, Args...>;
+
 }
 
 #include <TMM_Method.hpp>

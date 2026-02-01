@@ -104,6 +104,7 @@ namespace TMM
 		{
 			SetEvent(mPauseEvent);
 		}
+		ResetEvent(mpGateWay->GetPauseNotification());
 		mShouldPause = false;
 		LeaveCriticalSection(&mCS);
 	}
@@ -123,8 +124,10 @@ namespace TMM
 
 		if (ShouldPause()) {
 			EnterCriticalSection(&mCS);
+			mShouldPause = false;
 			mIsPaused = true;
 			LeaveCriticalSection(&mCS);
+			SetEvent(mpGateWay->GetPauseNotification());
 			WaitForSingleObject(mPauseEvent, INFINITE);
 		}
 		return ShouldTerminate();
@@ -134,6 +137,7 @@ namespace TMM
 	{
 		EnterCriticalSection(&mCS);
 		mHasTerminated = true;
+		mShouldTerminate = false;
 		mTerminationCode = code;
 		mpGateWay->StopWaitThreadTermination();
 		LeaveCriticalSection(&mCS);
@@ -149,7 +153,14 @@ namespace TMM
 		mpHandle(pHandle)
 	{
 		mThreadTerminateWait = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		mPauseNotification = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 		pHandle->SetGateWay(this);
+		InitializeCriticalSection(&mCS);
+	}
+
+	ThreadGateWay::~ThreadGateWay()
+	{
+		DeleteCriticalSection(&mCS);
 	}
 
 	bool ThreadGateWay::IsPaused() { return mpHandle->IsPaused(); }
@@ -160,11 +171,25 @@ namespace TMM
 		return Terminated;
 	}
 	void ThreadGateWay::Pause() { mpHandle->Pause(); }
-	void ThreadGateWay::Resume() { mpHandle->Resume(); }
+	void ThreadGateWay::Resume() { mpHandle->Resume();  }
 	void ThreadGateWay::Terminate() { mpHandle->Terminate(); }
 	void ThreadGateWay::TerminateWait() { 
 		mpHandle->Terminate(); 
 		WaitForSingleObject(mThreadTerminateWait, INFINITE);
+	}
+
+	void ThreadGateWay::WaitForPauseNotification()
+	{
+		WaitForSingleObject(mPauseNotification, INFINITE);
+	}
+
+	HANDLE ThreadGateWay::GetPauseNotification()
+	{
+		HANDLE r;
+		EnterCriticalSection(&mCS);
+		r = mPauseNotification;
+		LeaveCriticalSection(&mCS);
+		return r;
 	}
 
 	DWORD Thread::ProcThread(ThreadCtx* pCtx)

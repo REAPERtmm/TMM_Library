@@ -4,13 +4,14 @@
 //#include <TMM_UI_SFML.h>
 #include "TMM_Thread.h"
 #include "TMM_ThreadList.h"
+#include "TMM_ThreadCast.h"
+#include "TMM_ThreadLoop.h"
+
+#include "TMM_Functional.h"
 
 #pragma comment(lib, "Winmm.lib")
 
-void Transform(int& data, const int* pDatas, uint64_t dataSize)
-{
-	data += 1;
-}
+#define WAIT_FOR_A while (GetAsyncKeyState('A') == false) {}
 
 int main(int argc, char* argv[]) 
 {
@@ -31,32 +32,17 @@ int main(int argc, char* argv[])
 	DBG_INIT(dbg, true);
 #endif // !NDEBUG
 
-	int* pData = new int[1024];
-	for (int i = 0; i < 1024; ++i) pData[i] = 0;
+	int a = 1;
+	auto f = TMM::MakeLambdaMethodPtr([&a](int v) -> int { return a + v; });
 
-	TMM::ThreadListDescriptor<int> desc{};
-	desc.pFunc = TMM::MakeFunctionPtr(Transform);
-	desc.resource = { pData, 1024 };
-	desc.threadCount = 2;
-	desc.pThreadDelimiters = new TMM::ThreadListDelimiter[]{
-		{ 0, 512, },
-		{ 512, 1024 },
-	};
-	TMM::ThreadList<int>* threadList = new TMM::ThreadList<int>();
-	threadList->Init(&desc);
+	int b = f->Call(2);
+	a = 2;
+	int c = f->Call(2);
 
-	threadList->Start();
-	threadList->Process();
+	LOG_INFO << "b = " << b << ENDL;
+	LOG_INFO << "c = " << c << ENDL;
 
-	threadList->WaitForAllEnd();
-
-	TMM_ITER(i, 1024)
-	{
-		LOG_INFO << pData[i] << ENDL;
-	}
-
-	delete[] pData;
-	delete threadList;
+	delete f;
 
 	/*sf::Font font{ "res/arial.ttf" };
 
