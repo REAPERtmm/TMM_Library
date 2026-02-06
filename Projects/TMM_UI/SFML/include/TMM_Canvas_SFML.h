@@ -66,15 +66,15 @@ namespace TMM
 
 		// === ReadOnly ===
 
-		virtual const TMM::Vec2f& GetPosition_ReadOnly() const override { return mRect.position; }
-		virtual const TMM::Vec2f& GetSize_ReadOnly() const override { return mRect.size; }
-		virtual const TMM::Rect2Df& GetRect_ReadOnly() const override { return mRect; }
-		virtual const sf::Texture* GetBackgroundTexture_ReadOnly()	const override { return mpBackgroundTexture; }
-		virtual const Color& GetBackgroundColor_ReadOnly() const override { return mBackgroundColor; }
-		virtual const WidgetBorder& GetBorder_ReadOnly() const override { return mBorder; }
-		virtual float GetBorderThickness_ReadOnly() const override { return (HasBorder() ? 0.0f : mBorder.Thickness); }
-		virtual const Color& GetBorderColor_ReadOnly() const override { return mBorder.Color; }
-		virtual TMM::Vec2f GetScreenPosition_ReadOnly() const override;
+		virtual const TMM::Vec2f& GetPosition() const override { return mRect.position; }
+		virtual const TMM::Vec2f& GetSize() const override { return mRect.size; }
+		virtual const TMM::Rect2Df& GetRect() const override { return mRect; }
+		virtual const sf::Texture* GetBackgroundTexture()	const override { return mpBackgroundTexture; }
+		virtual const Color& GetBackgroundColor() const override { return mBackgroundColor; }
+		virtual const WidgetBorder& GetBorder() const override { return mBorder; }
+		virtual float GetBorderThickness() const override { return (HasBorder() ? 0.0f : mBorder.Thickness); }
+		virtual const Color& GetBorderColor() const override { return mBorder.Color; }
+		virtual TMM::Vec2f GetScreenPosition() const override;
 
 		// ===  Getter  ===
 
@@ -83,11 +83,11 @@ namespace TMM
 
 		// === Accessor ===
 
-		virtual TMM::Vec2f& Position() override { SetDirty(); return mRect.position; }
-		virtual TMM::Vec2f& Size() override { SetDirty(); return mRect.position; }
-		virtual const sf::Texture*& BackgroundTexture() override { SetDirty(); return mpBackgroundTexture; }
-		virtual Color& BackgroundColor() override { SetDirty(); return mBackgroundColor; }
-		virtual WidgetBorder& Border() override { SetDirty(); return mBorder; }
+		virtual void SetPosition(const TMM::Vec2f& pos) override { SetDirty(); mRect.position = pos; }
+		virtual void SetSize(const TMM::Vec2f& size) override { SetDirty(); mRect.size = size; }
+		virtual void SetBackgroundTexture(const sf::Texture* pTex)	override { SetDirty(); mpBackgroundTexture = pTex; }
+		virtual void SetBackgroundColor(const Color& color) override { SetDirty(); mBackgroundColor = color; }
+		virtual void SetBorder(const WidgetBorder& border) override { SetDirty(); mBorder = border; }
 
 		// === Reset ===
 
@@ -146,7 +146,7 @@ namespace TMM
 
 		// === Overlay ===
 
-		virtual bool GetOverlayVisibility_ReadOnly() const override { return mOverlayVisible; };
+		virtual bool GetOverlayVisibility() const override { return mOverlayVisible; };
 		virtual bool& OverlayVisibility() override { SetDirty(); return mOverlayVisible; };
 		virtual void ToggleOverlayVisibility() override { SetDirty(); mOverlayVisible = !mOverlayVisible; };
 		virtual void SetOverlay(Widget* pRoot) override;

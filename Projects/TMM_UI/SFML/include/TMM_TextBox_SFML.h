@@ -5,29 +5,32 @@
 #include "TMM_UI_Implement_SFML.h"
 #include "TMM_Canvas_SFML.h"
 
+#include <istream>;
+
 namespace TMM
 {
 
 	struct TextBoxSFMLDescriptor : public CanvasSFMLDescriptor
 	{
-		const char* Text			= "";
-		ANCHOR TextAnchor			= ANCHOR::CENTER_CENTER;
-		TMM::Vec2f TextOffset		= { 0, 0 };
-		TMM::Color TextColor		= TMM::CONSTANT::COLOR_BLACK;
-		WidgetBorder TextOutline	= { -1.0f, TMM::CONSTANT::COLOR_RED };
-		bool Bold					= false;
-		bool Italic					= false;
-		bool Underlined				= false;
-		bool StrikeThrough			= false;
-		unsigned int CharacterSize	= 12;
-		float CharacterSpacingX		= 0.5f;
-		float CharacterSpacingY		= 0.5f;
-		const sf::Font* pFont		= nullptr;
+		std::string Text					= "";
+		ANCHOR TextAnchor					= ANCHOR::CENTER_CENTER;
+		TMM::Vec2f TextOffset				= { 0, 0 };
+		TMM::Color TextColor				= TMM::CONSTANT::COLOR_BLACK;
+		WidgetBorder TextOutline			= { -1.0f, TMM::CONSTANT::COLOR_RED };
+		bool Bold							= false;
+		bool Italic							= false;
+		bool Underlined						= false;
+		bool StrikeThrough					= false;
+		unsigned int CharacterSize			= 12;
+		unsigned int MaxCharacterByLine		= 0;
+		float CharacterSpacingX				= 0.5f;
+		float CharacterSpacingY				= 0.5f;
+		const sf::Font* pFont				= nullptr;
 	};
 
 	class TextBoxSFML : public TMM::TextBox<sf::Font>, public TMM::CanvasSFML
 	{
-		TMM::String mStr;
+		std::string mStr;
 		ANCHOR mTextAnchor;
 		TMM::Vec2f mTextOffset;
 		TMM::Color mTextColor;
@@ -37,29 +40,32 @@ namespace TMM
 		bool mUnderlined;
 		bool mStrikeThrough;
 		unsigned int mCharacterSize;
+		unsigned int mMaxCharacterByLine;
 		float mCharacterSpacingX;
 		float mCharacterSpacingY;
 		const sf::Font* mpFont;
 		sf::Text* mpText;
+
 	public:
 
 		TextBoxSFML(WidgetSFML* pParent, TextBoxSFMLDescriptor* pDesc);
 
 		// === ReadOnly ===
 
-		virtual const Color& GetTextColor_ReadOnly() const override { return mTextColor; }
-		virtual const WidgetBorder& GetOutline_ReadOnly() const override { return mTextOutline; }
-		virtual float GetOutlineThickness_ReadOnly() const override { return mTextOutline.Thickness; }
-		virtual const Color& GetOutlineColor_ReadOnly() const override { return mTextOutline.Color; }
-		virtual float GetCharacterSpacingX_ReadOnly() const override { return mCharacterSpacingX; }
-		virtual float GetCharacterSpacingY_ReadOnly() const override { return mCharacterSpacingY; }
-		virtual unsigned int GetCharacterSize_ReadOnly() const override { return mCharacterSize; }
-		virtual const String& GetText_ReadOnly() const override { return mStr; }
-		virtual const sf::Font* GetFont_ReadOnly() const override { return mpFont; }
-		virtual bool GetBold_ReadOnly() const override { return mBold; }
-		virtual bool GetItalic_ReadOnly() const override { return mItalic; }
-		virtual bool GetUnderLined_ReadOnly() const override { return mUnderlined; }
-		virtual bool GetStrikeThrough_ReadOnly()const override { return mStrikeThrough; }
+		virtual const Color& GetTextColor() const override { return mTextColor; }
+		virtual const WidgetBorder& GetOutline() const override { return mTextOutline; }
+		virtual float GetOutlineThickness() const override { return mTextOutline.Thickness; }
+		virtual const Color& GetOutlineColor() const override { return mTextOutline.Color; }
+		virtual float GetCharacterSpacingX() const override { return mCharacterSpacingX; }
+		virtual float GetCharacterSpacingY() const override { return mCharacterSpacingY; }
+		virtual unsigned int GetCharacterSize() const override { return mCharacterSize; }
+		virtual unsigned int GetMaxCharacterByLine() const override { return mMaxCharacterByLine; }
+		virtual const std::string& GetText() const override { return mStr; }
+		virtual const sf::Font* GetFont() const override { return mpFont; }
+		virtual bool GetBold() const override { return mBold; }
+		virtual bool GetItalic() const override { return mItalic; }
+		virtual bool GetUnderLined() const override { return mUnderlined; }
+		virtual bool GetStrikeThrough()const override { return mStrikeThrough; }
 
 		// === Getter ===
 
@@ -67,17 +73,18 @@ namespace TMM
 
 		// === Accessor ===
 
-		virtual Color& TextColor() override { SetDirty(); return mTextColor; }
-		virtual WidgetBorder& Outline() override { SetDirty(); return mTextOutline; }
-		virtual float& CharacterSpacingX() override { SetDirty(); return mCharacterSpacingX; }
-		virtual float& CharacterSpacingY() override { SetDirty(); return mCharacterSpacingY; }
-		virtual unsigned int& CharacterSize() override { SetDirty(); return mCharacterSize; }
-		virtual TMM::String& Text() override { SetDirty(); return mStr; }
-		virtual const sf::Font*& Font() override { SetDirty(); return mpFont; }
-		virtual bool& Bold() override { SetDirty(); return mBold; }
-		virtual bool& Italic() override { SetDirty(); return mItalic; }
-		virtual bool& UnderLined() override { SetDirty(); return mUnderlined; }
-		virtual bool& StrikeThrough() override { SetDirty(); return mStrikeThrough; }
+		virtual void SetTextColor(const Color& color) override { SetDirty(); mTextColor = color; }
+		virtual void SetOutline(const WidgetBorder& border) override { SetDirty(); mTextOutline = border; }
+		virtual void SetCharacterSpacingX(float x) override { SetDirty(); mCharacterSpacingX = x; }
+		virtual void SetCharacterSpacingY(float y) override { SetDirty(); mCharacterSpacingY = y; }
+		virtual void SetCharacterSize(unsigned int size) override { SetDirty(); mCharacterSize = size; }
+		virtual void SetMaxCharacterByLine(unsigned int count) override { SetDirty(); mMaxCharacterByLine = count; }
+		virtual void SetText(const std::string& txt) override;
+		virtual void SetFont(const sf::Font* pFont) override { SetDirty(); mpFont = pFont; }
+		virtual void SetBold(bool active) override { SetDirty(); mBold = active; }
+		virtual void SetItalic(bool active) override { SetDirty(); mItalic = active; }
+		virtual void SetUnderLined(bool active) override { SetDirty(); mUnderlined = active; }
+		virtual void SetStrikeThrough(bool active) override { SetDirty(); mStrikeThrough = active; }
 
 		// === Setter ===
 

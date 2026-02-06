@@ -2,7 +2,6 @@
 
 TMM::TextBoxSFML::TextBoxSFML(WidgetSFML* pParent, TextBoxSFMLDescriptor* pDesc) :
 	CanvasSFML(pParent, pDesc),
-	mStr(pDesc->Text),
 	mTextAnchor(pDesc->TextAnchor),
 	mTextOffset(pDesc->TextOffset),
 	mTextColor(pDesc->TextColor),
@@ -12,12 +11,34 @@ TMM::TextBoxSFML::TextBoxSFML(WidgetSFML* pParent, TextBoxSFMLDescriptor* pDesc)
 	mUnderlined(pDesc->Underlined),
 	mStrikeThrough(pDesc->StrikeThrough),
 	mCharacterSize(pDesc->CharacterSize),
+	mMaxCharacterByLine(pDesc->MaxCharacterByLine),
 	mCharacterSpacingX(pDesc->CharacterSpacingX),
 	mCharacterSpacingY(pDesc->CharacterSpacingY),
 	mpFont(pDesc->pFont),
 	mpText(new sf::Text(*mpFont, mStr.data()))
-{ }
+{ 
+	SetText(pDesc->Text);
+}
 
+void TMM::TextBoxSFML::SetText(const std::string& txt)
+{
+	SetDirty();
+	if (txt.size() <= mMaxCharacterByLine || mMaxCharacterByLine == 0)
+	{
+		mStr = txt;
+		return;
+	}
+
+	std::stringstream stream;
+	unsigned int i = 0;
+	while (i < txt.size())
+	{
+		unsigned int size = mMaxCharacterByLine < txt.size() - i ? mMaxCharacterByLine : txt.size() - i;
+		stream << txt.substr(i, size) << '\n';
+		i += size;
+	}
+	mStr = stream.str();
+}
 
 void TMM::TextBoxSFML::UpdateRenderTargetSelf(sf::RectangleShape& brush)
 {
@@ -47,8 +68,8 @@ void TMM::TextBoxSFML::UpdateRenderTargetSelf(sf::RectangleShape& brush)
 
 	TMM::Vec2f size = TranslateVec2f(mpText->getLocalBounds().size);
 	sf::Vector2f final_position{
-		ANCHOR_DISPLACEMENT[mTextAnchor].x * (GetSize_ReadOnly().x - size.x) + mTextOffset.x,
-		ANCHOR_DISPLACEMENT[mTextAnchor].y * (GetSize_ReadOnly().y - size.y) + mTextOffset.y
+		ANCHOR_DISPLACEMENT[mTextAnchor].x * (GetSize().x - size.x) + mTextOffset.x,
+		ANCHOR_DISPLACEMENT[mTextAnchor].y * (GetSize().y - size.y) + mTextOffset.y
 	};
 	mpText->setPosition(final_position);
 

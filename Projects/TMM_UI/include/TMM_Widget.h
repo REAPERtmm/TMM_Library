@@ -32,15 +32,15 @@ namespace TMM
 
 		// === ReadOnly ===
 
-		virtual const TMM::Vec2f&		GetPosition_ReadOnly() const			= 0;
-		virtual const TMM::Vec2f&		GetSize_ReadOnly() const				= 0;
-		virtual const TMM::Rect2Df&		GetRect_ReadOnly() const				= 0;
-		virtual const Texture_t*		GetBackgroundTexture_ReadOnly()	const	= 0;
-		virtual const Color&			GetBackgroundColor_ReadOnly() const		= 0;
-		virtual const WidgetBorder&		GetBorder_ReadOnly() const				= 0;
-		virtual float					GetBorderThickness_ReadOnly() const		= 0;
-		virtual const Color&			GetBorderColor_ReadOnly() const			= 0;
-		virtual TMM::Vec2f				GetScreenPosition_ReadOnly() const		= 0;
+		virtual const TMM::Vec2f&		GetPosition() const				= 0;
+		virtual const TMM::Vec2f&		GetSize() const					= 0;
+		virtual const TMM::Rect2Df&		GetRect() const					= 0;
+		virtual const Texture_t*		GetBackgroundTexture()	const	= 0;
+		virtual const Color&			GetBackgroundColor() const		= 0;
+		virtual const WidgetBorder&		GetBorder() const				= 0;
+		virtual float					GetBorderThickness() const		= 0;
+		virtual const Color&			GetBorderColor() const			= 0;
+		virtual TMM::Vec2f				GetScreenPosition() const		= 0;
 
 		// ===  Getter  ===
 
@@ -49,11 +49,11 @@ namespace TMM
 
 		// === Accessor ===
 		
-		virtual TMM::Vec2f&			Position()			= 0;
-		virtual TMM::Vec2f&			Size()				= 0;
-		virtual const Texture_t*&	BackgroundTexture()	= 0;
-		virtual Color&				BackgroundColor()	= 0;
-		virtual WidgetBorder&		Border()			= 0;
+		virtual void	SetPosition(const TMM::Vec2f& pos)			= 0;
+		virtual void	SetSize(const TMM::Vec2f& size)				= 0;
+		virtual void	SetBackgroundTexture(const Texture_t* pTex)	= 0;
+		virtual void	SetBackgroundColor(const Color& color)		= 0;
+		virtual void	SetBorder(const WidgetBorder& border)		= 0;
 
 		// === Reset ===
 
@@ -113,7 +113,7 @@ namespace TMM
 
 		// === Overlay ===
 		
-		virtual bool GetOverlayVisibility_ReadOnly() const = 0;
+		virtual bool GetOverlayVisibility() const = 0;
 		virtual bool& OverlayVisibility() = 0;
 		virtual void ToggleOverlayVisibility() = 0;
 		virtual void SetOverlay(Widget* pRoot) = 0;

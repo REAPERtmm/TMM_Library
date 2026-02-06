@@ -37,7 +37,7 @@ namespace TMM
 		brush.setTexture(nullptr);
 		brush.setPosition(TranslateVec2f(position));
 		brush.setSize(TranslateVec2f(size));
-		brush.setFillColor(TranslateColor(GetBackgroundColor_ReadOnly()));
+		brush.setFillColor(TranslateColor(GetBackgroundColor()));
 		brush.setScale({ 1, 1 });
 		mpRenderTexture->draw(brush);
 	}
@@ -51,24 +51,24 @@ namespace TMM
 		if (mIsDestroyed == false) Destroy();
 	}
 
-	TMM::Vec2f CanvasSFML::GetScreenPosition_ReadOnly() const
+	TMM::Vec2f CanvasSFML::GetScreenPosition() const
 	{
-		if (mpParent == nullptr) return GetPosition_ReadOnly();
-		return mpParent->GetScreenPosition_ReadOnly() + GetPosition_ReadOnly();
+		if (mpParent == nullptr) return GetPosition();
+		return mpParent->GetScreenPosition() + GetPosition();
 	}
 
 	TMM::Vec2f CanvasSFML::ToLocalPosition(TMM::Vec2f screen_point) const
 	{
-		return screen_point - GetScreenPosition_ReadOnly();
+		return screen_point - GetScreenPosition();
 	}
 
 	bool CanvasSFML::Contain(TMM::Vec2f point) const
 	{
 		return (
-			point.x > GetPosition_ReadOnly().x &&
-			point.x < GetPosition_ReadOnly().x + GetSize_ReadOnly().x &&
-			point.y > GetPosition_ReadOnly().y &&
-			point.y < GetPosition_ReadOnly().y + GetSize_ReadOnly().y
+			point.x > GetPosition().x &&
+			point.x < GetPosition().x + GetSize().x &&
+			point.y > GetPosition().y &&
+			point.y < GetPosition().y + GetSize().y
 		);
 	}
 
@@ -76,7 +76,12 @@ namespace TMM
 	{
 		if (GetParent() == nullptr) return;
 
-		Size().x = GetParent()->GetSize_ReadOnly().x * ratio;
+		SetSize(
+			{
+				GetParent()->GetSize().x * ratio,
+				GetSize().y
+			}
+		);
 
 		SetDirty();
 	}
@@ -85,7 +90,12 @@ namespace TMM
 	{
 		if (GetParent() == nullptr) return;
 
-		Size().y = GetParent()->GetSize_ReadOnly().y * ratio;
+		SetSize(
+			{
+				GetSize().x,
+				GetParent()->GetSize().y * ratio
+			}
+		);
 
 		SetDirty();
 	}
@@ -94,7 +104,12 @@ namespace TMM
 	{
 		if (GetParent() == nullptr) return;
 
-		Position().x = GetParent()->GetSize_ReadOnly().x * ratio;
+		SetPosition(
+			{
+				GetParent()->GetSize().x * ratio,
+				GetPosition().y
+			}
+		);
 
 		SetDirty();
 	}
@@ -103,7 +118,12 @@ namespace TMM
 	{
 		if (GetParent() == nullptr) return;
 
-		Position().y = GetParent()->GetSize_ReadOnly().y * ratio;
+		SetPosition(
+			{
+				GetPosition().x,
+				GetParent()->GetSize().y * ratio
+			}
+		);
 
 		SetDirty();
 	}
@@ -111,7 +131,7 @@ namespace TMM
 	void CanvasSFML::PlaceRelativeAnchor(ANCHOR anchor, TMM::Vec2f offset)
 	{
 		if (GetParent() == nullptr) {
-			Position() = offset;
+			SetPosition(offset);
 			return;
 		}
 		if (anchor == ANCHOR::NONE) anchor = ANCHOR::TOP_LEFT;
@@ -122,10 +142,10 @@ namespace TMM
 			-2 * ANCHOR_DISPLACEMENT[anchor].y + 1,
 		};
 
-		Position() = {
-			ANCHOR_DISPLACEMENT[anchor].x * (GetParent()->GetSize_ReadOnly().x - GetSize_ReadOnly().x) + s.x * offset.x,
-			ANCHOR_DISPLACEMENT[anchor].y * (GetParent()->GetSize_ReadOnly().y - GetSize_ReadOnly().y) + s.y * offset.y
-		};
+		SetPosition({
+			ANCHOR_DISPLACEMENT[anchor].x * (GetParent()->GetSize().x - GetSize().x) + s.x * offset.x,
+			ANCHOR_DISPLACEMENT[anchor].y * (GetParent()->GetSize().y - GetSize().y) + s.y * offset.y
+		});
 		
 		SetDirty();
 	}
@@ -223,8 +243,8 @@ namespace TMM
 		UpdateRenderTarget(brush);
 
 		brush.setTexture(&GetRenderTarget(), true);
-		brush.setPosition({ GetPosition_ReadOnly().x, GetPosition_ReadOnly().y });
-		brush.setSize({ GetSize_ReadOnly().x, GetSize_ReadOnly().y });
+		brush.setPosition({ GetPosition().x, GetPosition().y });
+		brush.setSize({ GetSize().x, GetSize().y });
 		brush.setFillColor(sf::Color::White);
 		brush.setScale({ 1, 1 });
 
@@ -239,13 +259,13 @@ namespace TMM
 	void CanvasSFML::UpdateRenderTargetSelf(sf::RectangleShape& brush)
 	{
 		TMM::Vec2f position = { 0, 0 };
-		TMM::Vec2f size = { GetSize_ReadOnly().x, GetSize_ReadOnly().y };
+		TMM::Vec2f size = { GetSize().x, GetSize().y };
 
 		if (HasBorder())
 		{
-			mpRenderTexture->clear(TranslateColor(GetBorderColor_ReadOnly()));
-			position += { GetBorderThickness_ReadOnly(), GetBorderThickness_ReadOnly() };
-			size -= { 2 * GetBorderThickness_ReadOnly(), 2 * GetBorderThickness_ReadOnly() };
+			mpRenderTexture->clear(TranslateColor(GetBorderColor()));
+			position += { GetBorderThickness(), GetBorderThickness() };
+			size -= { 2 * GetBorderThickness(), 2 * GetBorderThickness() };
 			if (HasBackgroundTexture()) // BORDER - TEXTURE
 			{
 				DrawBackgroundTexture(
@@ -273,7 +293,7 @@ namespace TMM
 		}
 		else // NO BORDER - NO TEXTURE
 		{
-			mpRenderTexture->clear(TranslateColor(GetBackgroundColor_ReadOnly()));
+			mpRenderTexture->clear(TranslateColor(GetBackgroundColor()));
 		}
 	}
 
@@ -284,8 +304,8 @@ namespace TMM
 			GetChild(i_child)->UpdateRenderTarget(brush);
 
 			brush.setTexture(&GetChild(i_child)->GetRenderTarget(), true);
-			brush.setPosition({ GetChild(i_child)->GetPosition_ReadOnly().x, GetChild(i_child)->GetPosition_ReadOnly().y });
-			brush.setSize({ GetChild(i_child)->GetSize_ReadOnly().x, GetChild(i_child)->GetSize_ReadOnly().y });
+			brush.setPosition({ GetChild(i_child)->GetPosition().x, GetChild(i_child)->GetPosition().y });
+			brush.setSize({ GetChild(i_child)->GetSize().x, GetChild(i_child)->GetSize().y });
 			brush.setFillColor(sf::Color::White);
 			brush.setScale({ 1, 1 });
 
@@ -305,8 +325,8 @@ namespace TMM
 			mpOverlay->UpdateRenderTarget(brush);
 
 			brush.setTexture(&mpOverlay->GetRenderTarget(), true);
-			brush.setPosition({ mpOverlay->GetPosition_ReadOnly().x, mpOverlay->GetPosition_ReadOnly().y });
-			brush.setSize({ mpOverlay->GetSize_ReadOnly().x, mpOverlay->GetSize_ReadOnly().y });
+			brush.setPosition({ mpOverlay->GetPosition().x, mpOverlay->GetPosition().y });
+			brush.setSize({ mpOverlay->GetSize().x, mpOverlay->GetSize().y });
 			brush.setFillColor(sf::Color::White);
 			brush.setScale({ 1, 1 });
 
@@ -318,10 +338,10 @@ namespace TMM
 	{
 		if (mIsDirty == false) return;
 
-		if (mLastSize.x != GetSize_ReadOnly().x || mLastSize.y != GetSize_ReadOnly().y)
+		if (mLastSize.x != GetSize().x || mLastSize.y != GetSize().y)
 		{
-			mLastSize = GetSize_ReadOnly();
-			bool FAILED_RESIZE = mpRenderTexture->resize({ static_cast<uint32_t>(GetSize_ReadOnly().x), static_cast<uint32_t>(GetSize_ReadOnly().y) }) == false;
+			mLastSize = GetSize();
+			bool FAILED_RESIZE = mpRenderTexture->resize({ static_cast<uint32_t>(GetSize().x), static_cast<uint32_t>(GetSize().y) }) == false;
 			if (FAILED_RESIZE) {
 				return;
 			}
