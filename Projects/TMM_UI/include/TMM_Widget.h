@@ -137,14 +137,14 @@ namespace TMM
 	};
 
 	template<typename Root_t, typename... Args>
-	Root_t* CreateRootWidget(Args... args)
+	Root_t* CreateRootWidget(Args&&... args)
 	{
 		return new Root_t(nullptr, std::forward<Args>(args)...);
 	}
 
 	template<typename Child_t, TMM_WidgetTemplateDefine, typename... Args>
 		requires(TMM::IsBaseOf<Widget<TMM_WidgetTypenameDefine>, Child_t>)
-	Child_t* AddChildToWidget(Widget<TMM_WidgetTypenameDefine>* parent, Args... args)
+	Child_t* AddChildToWidget(Widget<TMM_WidgetTypenameDefine>* parent, Args&&... args)
 	{
 		return (Child_t*)parent->AddChild(new Child_t(parent, std::forward<Args>(args)...));
 	}

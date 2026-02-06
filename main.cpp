@@ -1,26 +1,20 @@
 #include <TMM_Setup.h>
 #include <TMM_Debugger.h>
 
-#include <TMM_UI_SFML.h>
+//#include <TMM_UI_SFML.h>
 #include <TMM_Functional.h>
 
 #pragma comment(lib, "Winmm.lib")
 
 #define WAIT_FOR_A while (GetAsyncKeyState('A') == false) {}
 
-int add(int a)
+void Func()
 {
-	return a + 1;
-}
+	TMM::SmartPtr<int> a = new int(1);
+	TMM::SmartPtr<int> b = a;
 
-struct A
-{
-	int x;
-	int add(int a)
-	{
-		return x + a;
-	}
-};
+	LOG_INFO << "b = " << *b << ENDL;
+}
 
 int main(int argc, char* argv[]) 
 {
@@ -41,14 +35,7 @@ int main(int argc, char* argv[])
 	DBG_INIT(dbg, true);
 #endif // !NDEBUG
 
-	A a;
-	a.x = 5;
-
-	TMM::Callable<int, int>* pFunc = TMM::MakeLambdaMethodPtr([&a](int x) { return a.x * 2 + x; });
-
-	auto b = pFunc->Call(1);
-
-	LOG_INFO << "b = " << b << ENDL;
+	Func();
 
 	//sf::Font font{ "res/arial.ttf" };
 

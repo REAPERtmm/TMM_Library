@@ -350,3 +350,4 @@ namespace TMM {
 #include "TMM_BitMask.h"
 #include "TMM_String.h"
 #include "TMM_StringBuilder.h"
+#include "TMM_SmartPtr.h"
