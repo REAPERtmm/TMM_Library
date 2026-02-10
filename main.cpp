@@ -1,20 +1,12 @@
 #include <TMM_Setup.h>
 #include <TMM_Debugger.h>
 
-//#include <TMM_UI_SFML.h>
+#include <TMM_UI_SFML.h>
 #include <TMM_Functional.h>
 
 #pragma comment(lib, "Winmm.lib")
 
 #define WAIT_FOR_A while (GetAsyncKeyState('A') == false) {}
-
-void Func()
-{
-	TMM::SmartPtr<int> a = new int(1);
-	TMM::SmartPtr<int> b = a;
-
-	LOG_INFO << "b = " << *b << ENDL;
-}
 
 int main(int argc, char* argv[]) 
 {
@@ -35,26 +27,23 @@ int main(int argc, char* argv[])
 	DBG_INIT(dbg, true);
 #endif // !NDEBUG
 
-	Func();
+	sf::Font font{ "res/arial.ttf" };
 
-	//sf::Font font{ "res/arial.ttf" };
+	TMM::RenderWindowUISFML window;
+	window.Init({ 960, 540 }, "TMM_UI_SFML");
 
-	//TMM::RenderWindowUISFML window;
-	//window.Init({ 960, 540 }, "Bonne nuit les petits");
-
-	//TMM::CanvasSFMLDescriptor overlayDesc{};
-	//overlayDesc.CanvasSize = { 100, 100 };
-	//overlayDesc.CanvasBackgroundColor = { 100, 100, 100, 255 };
-	//auto overlay = TMM::CreateRootWidget<TMM::CanvasSFML>(&overlayDesc);
+	TMM::CanvasSFMLDescriptor overlayDesc{};
+	overlayDesc.CanvasSize = { 100, 100 };
+	overlayDesc.CanvasBackgroundColor = { 100, 100, 100, 255 };
+	auto overlay = TMM::CreateRootWidget<TMM::CanvasSFML>(&overlayDesc);
 
 
-
-	//TMM::CanvasSFMLDescriptor rootDesc{};
-	//rootDesc.CanvasSize = window.GetSize();
-	//rootDesc.CanvasBackgroundColor = TMM::CONSTANT::COLOR_DEEP_BLUE;
-	//rootDesc.pCanvasOverlayRoot = overlay;
-	//rootDesc.CanvasOverlayVisibleByDefault = true;
-	//auto root = TMM::CreateRootWidget<TMM::CanvasSFML>(&rootDesc);
+	TMM::CanvasSFMLDescriptor rootDesc{};
+	rootDesc.CanvasSize = window.GetSize();
+	rootDesc.CanvasBackgroundColor = TMM::CONSTANT::COLOR_DEEP_BLUE;
+	rootDesc.pCanvasOverlayRoot = overlay;
+	rootDesc.CanvasOverlayVisibleByDefault = true;
+	auto root = TMM::CreateRootWidget<TMM::CanvasSFML>(&rootDesc);
 
 	//root->GetEvents()->RegisterCallbackHover(
 	//	new TMM::LambdaMethod<void, TMM::Vec2f>(
@@ -66,23 +55,37 @@ int main(int argc, char* argv[])
 	//	)
 	//);
 
-	//TMM::TextBoxSFMLDescriptor txtDesc{};
-	//txtDesc.Text = "J'aime les patates";
-	//txtDesc.CanvasSize = { 200, 100 };
-	//txtDesc.CanvasOffset = { 50, 50 };
-	//txtDesc.CanvasAnchor = TMM::ANCHOR::TOP_LEFT;
-	//txtDesc.MaxCharacterByLine = 5;
-	//txtDesc.pFont = &font;
-	//TMM::AddChildToWidget<TMM::TextBoxSFML>(root, &txtDesc);
+	TMM::SliderSFMLDescriptor sliderDesc{};
+	sliderDesc.CanvasSize = { 200, 80 };
+	sliderDesc.CanvasOffset = { 600, 100 };
+	auto slider = TMM::AddChildToWidget<TMM::SliderSFML>(root, &sliderDesc);
+	((TMM::SliderEventsSFML*)slider->GetEvents())->RegisterCallbackValueChanged(
+		TMM::MakeFunctionPtr(
+			+[](float old, float v)
+			{
+				LOG_INFO << "New Slider Value : " << v << ENDL;
+			}
+		)
+	);
 
-	//window.AddRoot(root);
-	//while (window.IsOpen())
-	//{
-	//	window.Update();
-	//	window.Render();
-	//}
+	TMM::TextBoxSFMLDescriptor txtDesc{};
+	txtDesc.Text = "Place  Holder";
+	txtDesc.CanvasSize = { 200, 100 };
+	txtDesc.CanvasOffset = { 50, 50 };
+	txtDesc.CanvasAnchor = TMM::ANCHOR::TOP_LEFT;
+	txtDesc.MaxCharacterByLine = 7;
+	txtDesc.CharacterSize = 16;
+	txtDesc.pFont = &font;
+	TMM::AddChildToWidget<TMM::TextBoxSFML>(root, &txtDesc);
 
-	//window.Destroy();
+	window.AddRoot(root);
+	while (window.IsOpen())
+	{
+		window.Update();
+		window.Render();
+	}
+
+	window.Destroy();
 
 	DBG_UNINIT();
 

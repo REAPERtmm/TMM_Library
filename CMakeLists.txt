@@ -4,7 +4,7 @@ project(TESTS)
 
 add_executable(TestProject)
 
-set(TMM_UI_IMPLEMENT_SFML OFF)
+set(TMM_UI_IMPLEMENT_SFML ON)
 
 message(STATUS "Including TMM_Setup at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Setup/")
 if(NOT TARGET TMM_Setup_LIB)

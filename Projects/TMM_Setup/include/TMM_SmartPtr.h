@@ -48,6 +48,8 @@ namespace TMM
 			}
 		}
 
+		T* ptr() { return mPtr; }
+
 		SmartPtr<T>& operator = (const SmartPtr<T>& other)
 		{
 			if (other.mPtr->ptr == mPtr->ptr) return;
@@ -60,9 +62,9 @@ namespace TMM
 			return *mPtr->ptr;
 		}
 
-		T& operator ->()
+		T* operator ->()
 		{
-			return *mPtr->ptr;
+			return mPtr->ptr;
 		}
 
 		SmartPtr<T>& operator ++()
