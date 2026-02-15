@@ -4,7 +4,7 @@ project(TESTS)
 
 add_executable(TestProject)
 
-set(TMM_UI_IMPLEMENT_SFML ON)
+set(TMM_UI_IMPLEMENT_SFML OFF)
 
 message(STATUS "Including TMM_Setup at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Setup/")
 if(NOT TARGET TMM_Setup_LIB)
@@ -56,6 +56,11 @@ if(NOT TARGET TMM_UI_LIB)
     add_subdirectory("Projects/TMM_UI/")
 endif()
 
+message(STATUS "Including TMM_Algorithm at : ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMM_Algorithm/")
+if(NOT TARGET TMM_Algorithme_LIB)
+    add_subdirectory("Projects/TMM_Algorithm/")
+endif()
+
 target_link_libraries(
     TestProject
     PUBLIC
@@ -69,6 +74,7 @@ target_link_libraries(
         TMM_Audio_LIB
         TMM_AI_LIB
         TMM_UI_LIB
+        TMM_Algorithm_LIB
 )
 
 add_custom_command(

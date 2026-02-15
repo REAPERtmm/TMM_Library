@@ -17,7 +17,7 @@ namespace TMM
 		cPtr* mPtr;
 
 	public:
-		SmartPtr() : mPtr(new cPtr(new T(), 1)) 
+		SmartPtr() : mPtr(nullptr) 
 		{ 
 
 		}
@@ -40,12 +40,14 @@ namespace TMM
 
 		void Delete()
 		{
+			if (mPtr == nullptr) return;
 			mPtr->count--;
 			if (mPtr->count <= 0)
 			{
 				delete mPtr->ptr;
 				delete mPtr;
 			}
+			mPtr = nullptr;
 		}
 
 		T* ptr() { return mPtr; }
@@ -55,6 +57,15 @@ namespace TMM
 			if (other.mPtr->ptr == mPtr->ptr) return;
 			mPtr = other.mPtr;
 			mPtr->count++;
+		}
+
+		SmartPtr<T>& operator = (T* ptr)
+		{
+			Delete();
+			mPtr = new cPtr(
+				ptr,
+				1
+			);
 		}
 
 		T& operator *()
