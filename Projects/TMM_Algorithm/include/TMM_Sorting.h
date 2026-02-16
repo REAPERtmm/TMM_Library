@@ -67,7 +67,7 @@ namespace TMM
 			TMM::OneOf<T, uint8_t, uint16_t, uint32_t, uint64_t> &&
 			(BITS == 8 || BITS == 16)
 			)
-		void RandixSort(T* buffer, uint64_t buffer_size, bool(*compare)(uint32_t& before, uint32_t& after) = +[](uint32_t& before, uint32_t& after) { return before < after; })
+		void RadixSort(T* buffer, uint64_t buffer_size, bool(*compare)(uint32_t& before, uint32_t& after) = +[](uint32_t& before, uint32_t& after) { return before < after; })
 		{
 			static std::queue<T> buckets[1 << BITS];
 

@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
 #endif // !NDEBUG
 
 	BenchMark("Quick Sort", TMM::SORTING::QuickSort, 4096); // Failed => to correct
-	BenchMark("Randix (8 bits) Sort", TMM::SORTING::RandixSort<uint32_t, 8>, 4096);
-	BenchMark("Randix (16 bits) Sort", TMM::SORTING::RandixSort<uint32_t, 16>, 4096);
+	BenchMark("Radix (8 bits) Sort", TMM::SORTING::RadixSort<uint32_t, 8>, 4096);
+	BenchMark("Radix (16 bits) Sort", TMM::SORTING::RadixSort<uint32_t, 16>, 4096);
 	BenchMark("Insertion Sort", TMM::SORTING::InsertionSort, 4096);
 	BenchMark("Selection Sort", TMM::SORTING::SelectionSort, 4096);
 	BenchMark("Bubble Sort", TMM::SORTING::BubbleSort, 4096);
